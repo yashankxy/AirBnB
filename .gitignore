@@ -1,0 +1,7 @@
+*.classpath
+*.project
+.vscode/settings.json
+bin/
+*.DS_Store
+*.class
+.vscode/settings.json
