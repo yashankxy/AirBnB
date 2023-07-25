@@ -2,8 +2,6 @@ package Functions;
 
 import java.util.Scanner;
 
-import Classes.Booking;
-
 public class Controller {
     Scanner sc = null;
     sqlFunctions db = null;
