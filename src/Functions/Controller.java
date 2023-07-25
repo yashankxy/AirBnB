@@ -20,7 +20,7 @@ public class Controller {
         return true;
     }    
 
-    public void execute() {
+    public void Menu() {
         if (sc != null && db != null) {
             String val;
             int choice;
@@ -100,7 +100,7 @@ public class Controller {
     }
 
     public void host(){
-        
+
     }
 
 }
