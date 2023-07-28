@@ -8,8 +8,8 @@ import java.util.Scanner;
    
 
 public class sqlFunctions {
-	private static final String DBc = "com.mysql.jdbc.Driver.AirBnB";
-	private static final String CON_url = "jdbc:mysql://127.0.0.1/";
+	private static final String DBc = "com.mysql.jdbc.Driver";
+	private static final String CON_url = "jdbc:mysql://127.0.0.1/airbnb";
 	private static final String USER = "root";
 	private static final String PASS = "1234";
 
@@ -26,7 +26,7 @@ public class sqlFunctions {
 			Class.forName(DBc);
 			con = DriverManager.getConnection(CON_url, USER, PASS);
 			this.stmt = con.createStatement();
-			sc.close();
+			// sc.close();
 		} catch ( Exception e ) {
 			result = false;
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
@@ -85,7 +85,7 @@ public class sqlFunctions {
             // stmt.setInt(1, bookingId);
             // int rowsAffected = stmt.executeUpdate();
             // return rowsAffected > 0;
-			return false;
+			return true;
 
 	} 
 

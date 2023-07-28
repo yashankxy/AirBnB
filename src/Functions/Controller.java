@@ -105,6 +105,8 @@ public class Controller {
     /** Create a new customer account*/
     public void renter(){
         String name, email, password, dob, address, occup, sin;
+        String cc_num, cc_name, cc_exp, cc_cvv;
+
         // Getting user input
         System.out.println("\nEnter your name: ");
         name = sc.nextLine();
@@ -144,8 +146,6 @@ public class Controller {
     /** Create a new host account*/
     public void host(){
         String name, email, password, dob, address, occup, sin;
-        String cc_num, cc_name, cc_exp, cc_cvv;
-        String rental_date, hostName, propertyDetails;
 
         // Getting user input
         System.out.println("\nEnter your name: ");
