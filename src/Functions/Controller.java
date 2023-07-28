@@ -43,7 +43,7 @@ public class Controller {
                             // login()
                             break;
                         case 3:
-                            // sign-Up();
+                            signup();
                             break;
                         default:
                             System.out.println("Invalid option");
@@ -80,10 +80,10 @@ public class Controller {
                         case 1:
                             break;
                         case 2:
-                            // host()
+                            host();
                             break;
                         case 3:
-                            // renter();
+                            renter();
                             break;
                         default:
                             System.out.println("Invalid option");
