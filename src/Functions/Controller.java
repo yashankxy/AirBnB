@@ -56,7 +56,6 @@ public class Controller {
 
             if (val.equals("1")) close();
 
-            sc.close();
         } 
         else {
             System.out.println("\nConnection Failed");
@@ -72,7 +71,7 @@ public class Controller {
                 System.out.println("\n Options: \n"+
                                 "        1. Exit \n"+
                                 "        2. sign up as Host\n"+
-                                "        3. Sign up as customer \n");
+                                "        3. Sign up as renter \n");
                 System.out.print("Select:");
                 val = sc.nextLine();
                 try {
@@ -84,7 +83,7 @@ public class Controller {
                             // host()
                             break;
                         case 3:
-                            // customer();
+                            // renter();
                             break;
                         default:
                             System.out.println("Invalid option");
@@ -104,7 +103,7 @@ public class Controller {
     }
 
     /** Create a new customer account*/
-    public void customer(){
+    public void renter(){
         String name, email, password, dob, address, occup, sin;
         // Getting user input
         System.out.println("\nEnter your name: ");
@@ -122,6 +121,15 @@ public class Controller {
         System.out.println("\nEnter your password: ");          // Add do while
         password = sc.nextLine();
 
+        //___________________________Renter Credit card Information________________________________
+        System.out.println("\nEnter your credit card number: ");          // Add do while
+        cc_num = sc.nextLine();
+        System.out.println("\nEnter your credit card name: ");          // Add do while
+        cc_name = sc.nextLine();
+        System.out.println("\nEnter your credit card expiry date (mm/yy): ");          // Add do while
+        cc_exp = sc.nextLine();
+        System.out.println("\nEnter your credit card cvv: ");          // Add do while
+        cc_cvv = sc.nextLine();
         // Check if already exists
             // if (db.checkCustomer(email, password)){
             //     System.out.println("\nAccount already exists");
@@ -154,31 +162,8 @@ public class Controller {
         email = sc.nextLine();
         System.out.println("\nEnter your password: ");          // Add do while
         password = sc.nextLine();
-        //___________________________Renter Credit card Information________________________________
-        System.out.println("\nEnter your credit card number: ");          // Add do while
-        cc_num = sc.nextLine();
-        System.out.println("\nEnter your credit card name: ");          // Add do while
-        cc_name = sc.nextLine();
-        System.out.println("\nEnter your credit card expiry date (mm/yy): ");          // Add do while
-        cc_exp = sc.nextLine();
-        System.out.println("\nEnter your credit card cvv: ");          // Add do while
-        cc_cvv = sc.nextLine();
         
-        //___________________________Renter History________________________________
-        System.out.println("\nEnter previous rental date: ");          // Add do while
-        rental_date = sc.nextLine();
-        System.out.println("\nEnter previous hostname: ");          // Add do while
-        hostName = sc.nextLine();
-        System.out.println("\nEnter previous propery details: ");          // Add do while
-        propertyDetails = sc.nextLine();
-
-        //___________________________Renter Future________________________________
-        // System.out.println("\nEnter available rental date: ");          // Add do while
-        // rental_date = sc.nextLine();
-        // System.out.println("\nEnter hostname: ");          // Add do while
-        // hostName = sc.nextLine();
-        // System.out.println("\nEnter previous propery details: ");          // Add do while
-        // propertyDetails = sc.nextLine();
+        
         
         // Inserting into database
             // db.insertRenter(name, email, password, dob, address, occup, sin);
