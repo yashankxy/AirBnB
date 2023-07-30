@@ -107,47 +107,47 @@ public class Controller {
 
     /** Create a new customer account*/
     public void renter() throws SQLException{
-        String name, email, password, dob, address, occup, sin;
-        String cc_num, cc_name, cc_exp, cc_cvv;
+        // String name, email, password, dob, address, occup, sin;
+        // String cc_num, cc_name, cc_exp, cc_cvv;
 
-        // Getting user input
-        System.out.println("\nEnter your name: ");
-        name = sc.nextLine();
-        System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
-        dob = sc.nextLine();
-        System.out.println("\nEnter your address: ");          // Add do while
-        address = sc.nextLine();
-        System.out.println("\nEnter your occupation: ");
-        occup = sc.nextLine();
-        System.out.println("\nEnter your SIN number: ");          // Add do while
-        sin = sc.nextLine();
-        System.out.println("\nEnter your email: ");         // Add do while
-        email = sc.nextLine();
-        System.out.println("\nEnter your password: ");          // Add do while
-        password = sc.nextLine();
+        // // Getting user input
+        // System.out.println("\nEnter your name: ");
+        // name = sc.nextLine();
+        // System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
+        // dob = sc.nextLine();
+        // System.out.println("\nEnter your address: ");          // Add do while
+        // address = sc.nextLine();
+        // System.out.println("\nEnter your occupation: ");
+        // occup = sc.nextLine();
+        // System.out.println("\nEnter your SIN number: ");          // Add do while
+        // sin = sc.nextLine();
+        // System.out.println("\nEnter your email: ");         // Add do while
+        // email = sc.nextLine();
+        // System.out.println("\nEnter your password: ");          // Add do while
+        // password = sc.nextLine();
 
-        //___________________________Renter Credit card Information________________________________
-        System.out.println("\nEnter your credit card number: ");          // Add do while
-        cc_num = sc.nextLine();
-        System.out.println("\nEnter your credit card name: ");          // Add do while
-        cc_name = sc.nextLine();
-        System.out.println("\nEnter your credit card expiry date (mm/yy): ");          // Add do while
-        cc_exp = sc.nextLine();
-        System.out.println("\nEnter your credit card cvv: ");          // Add do while
-        cc_cvv = sc.nextLine();
-        // Check if already exists
-            // if (db.checkCustomer(email, password)){
-            //     System.out.println("\nAccount already exists");
+        // //___________________________Renter Credit card Information________________________________
+        // System.out.println("\nEnter your credit card number: ");          // Add do while
+        // cc_num = sc.nextLine();
+        // System.out.println("\nEnter your credit card name: ");          // Add do while
+        // cc_name = sc.nextLine();
+        // System.out.println("\nEnter your credit card expiry date (mm/yy): ");          // Add do while
+        // cc_exp = sc.nextLine();
+        // System.out.println("\nEnter your credit card cvv: ");          // Add do while
+        // cc_cvv = sc.nextLine();
+        // // Check if already exists
+        //     // if (db.checkCustomer(email, password)){
+        //     //     System.out.println("\nAccount already exists");
 
-        // Inserting into database
-        Boolean val = db.createuser(name, email, password, address, occup, sin, dob, false);
-        if (val){
-            System.out.println("\nAccount created successfully");
-        }
-        else{
-            System.out.println("Unable to Create user");
-        }
-        signup();
+        // // Inserting into database
+        // Boolean val = db.createuser(name, email, password, address, occup, sin, dob, false);
+        // if (val){
+        //     System.out.println("\nAccount created successfully");
+        // }
+        // else{
+        //     System.out.println("Unable to Create user");
+        // }
+        // signup();
     }
 
     /** Create a new host account */
@@ -165,9 +165,6 @@ public class Controller {
         do{ // Date of Birth
             System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
             dob = sc.nextLine();
-            // Checking dob
-            // Check Valid string entered or not:
-                //
             try{
                 Period period; // For date format
                 String[] splitUrl = dob.split("/");

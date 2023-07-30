@@ -75,6 +75,41 @@ public class sqlFunctions {
 		}
 	}
 
+	public ResultSet getUser(String uid){
+		try{
+			String query = "SELECT * FROM Users WHERE uid = '%s'";
+			query = String.format(query, uid);
+			return this.stmt.executeQuery(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return null;
+		}
+	}
+
+	public ResultSet updateUser(String uid, String name, String email, String pwd, String address, String occup, String sin, String dob){
+		try{
+			String query = "UPDATE users SET name='%s', email='%s', password='%s', address='%s', occupation='%s', sin='%s', dob='%s' WHERE uid = '%s'";
+        	query = String.format(query, name, email, pwd, address, occup, sin, dob, uid);
+			return this.stmt.executeQuery(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return null;
+		}
+	}
+
+	public ResultSet delUser(String uid){
+		try{
+			String query = "DELETE FROM Users WHERE uid = '%s'";
+			query = String.format(query, uid);
+			return this.stmt.executeQuery(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return null;
+		}
+	}
+
+	
+
 	public boolean listings(int userID ){ // Add Listing details, create a class if required for listings
 		return true;
 	}
