@@ -1,5 +1,8 @@
 package Functions;
 
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.Scanner;
 
 public class Controller {
@@ -23,7 +26,7 @@ public class Controller {
     }    
     
     /** Opens up Menu */
-    public void Menu() {
+    public void Menu() throws SQLException {
         if (sc != null && db != null) {
             String val;
             int choice;
@@ -63,7 +66,7 @@ public class Controller {
     }
 
     /** Sign up as a Host or customer account */
-    public void signup(){
+    public void signup() throws SQLException{
         if (sc != null && db != null){
             String val;
             int choice;
@@ -103,7 +106,7 @@ public class Controller {
     }
 
     /** Create a new customer account*/
-    public void renter(){
+    public void renter() throws SQLException{
         String name, email, password, dob, address, occup, sin;
         String cc_num, cc_name, cc_exp, cc_cvv;
 
@@ -137,25 +140,47 @@ public class Controller {
             //     System.out.println("\nAccount already exists");
 
         // Inserting into database
-            // db.insertCustomer(name, email, password, dob, address, occup, sin);
-        
-        System.out.println("\nAccount created successfully");
+        Boolean val = db.createuser(name, email, password, address, occup, sin, dob, false);
+        if (val){
+            System.out.println("\nAccount created successfully");
+        }
+        else{
+            System.out.println("Unable to Create user");
+        }
         signup();
     }
 
-    /** Create a new host account*/
-    public void host(){
+    /** Create a new host account */
+    public void host() throws SQLException{
         String name, email, password, dob, address, occup, sin;
-
+        Boolean verify = true;
         // Getting user input
         System.out.println("\nEnter your name: ");
         name = sc.nextLine();
-        System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
-        dob = sc.nextLine();
-        System.out.println("\nEnter your address: ");          // Add do while
+        System.out.println("\nEnter your address: ");          
         address = sc.nextLine();
         System.out.println("\nEnter your occupation: ");
         occup = sc.nextLine();
+
+        do{ // Date of Birth
+            System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
+            dob = sc.nextLine();
+            // Checking dob
+            // Check Valid string entered or not:
+                //
+            try{
+                Period period; // For date format
+                String[] splitUrl = dob.split("/");
+                LocalDate birthdate = LocalDate.of(Integer.parseInt(splitUrl[2]), Integer.parseInt(splitUrl[1]), Integer.parseInt(splitUrl[0]));
+                LocalDate today = LocalDate.now();
+                period = Period.between(birthdate, today);
+                verify= period.getYears()<18;
+                if (verify) System.out.println("\nYou must be 18 years or older to be a host");
+            }catch(Exception e){
+                System.out.println("Invalid date format");
+            }
+        }while(verify);
+
         System.out.println("\nEnter your SIN number: ");          // Add do while
         sin = sc.nextLine();
         System.out.println("\nEnter your email: ");         // Add do while
@@ -166,10 +191,15 @@ public class Controller {
         
         
         // Inserting into database
-            // db.insertRenter(name, email, password, dob, address, occup, sin);
-
-        System.out.println("\nAccount created successfully");
+        Boolean val = db.createuser(name, email, password, address, occup, sin, dob, true);
+        if (val){
+            System.out.println("\nAccount created successfully");
+        }
+        else{
+            System.out.println("\nUnable to Create user");
+        }
         signup();
+
     }
 
 

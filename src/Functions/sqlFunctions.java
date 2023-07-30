@@ -13,8 +13,8 @@ public class sqlFunctions {
 	private static final String USER = "root";
 	private static final String PASS = "1234";
 
-	Connection con = null;
-	Statement stmt = null;
+	public Connection con = null;
+	public Statement stmt = null;
 
 
 	/** Connects and Initialize */
@@ -63,8 +63,16 @@ public class sqlFunctions {
 	}
 
 	/** Create a user */
-	public boolean createuser(boolean host ){ // Add customer details, or host details create a class if required
-		return true;
+	public boolean createuser(String name, String email, String password, String address, String occupation, String sin, String dob, boolean host ) throws SQLException{ // Add customer details, or host details create a class if required
+		try{
+			String query = "INSERT INTO users (name, email, password, address, occupation, sin, dob) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s')";
+			query = String.format(query, name, email, password, address, occupation, sin, dob);
+			this.stmt.execute(query);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
 	}
 
 	public boolean listings(int userID ){ // Add Listing details, create a class if required for listings
