@@ -75,15 +75,30 @@ public class sqlFunctions {
 		}
 	}
 
-	public ResultSet getUser(String uid){
+	public List<String> getUser(String uid){
+		List<String> info = new ArrayList<String>();
+		String query = "SELECT * FROM Users WHERE uid = '%s'";
+		query = String.format(query, uid);
 		try{
-			String query = "SELECT * FROM Users WHERE uid = '%s'";
-			query = String.format(query, uid);
-			return this.stmt.executeQuery(query);
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next()) {
+				info.add(rs.getString("email"));
+				info.add(rs.getString("first_name"));
+				info.add(rs.getString("last_name"));
+				info.add(rs.getString("dob"));
+				info.add(rs.getString("address"));
+				info.add(rs.getString("occupation"));
+				info.add(rs.getString("sin"));
+				info.add(rs.getString("password"));
+				info.add(rs.getString("cc"));
+				info.add(rs.getString("num_cancellations"));
+			}
+			rs.close();
 		}catch(Exception e){
+			System.out.println("Unable to extract information");
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			return null;
 		}
+		return info;
 	}
 
 	public ResultSet updateUser(String uid, String name, String email, String pwd, String address, String occup, String sin, String dob){
@@ -108,7 +123,7 @@ public class sqlFunctions {
 		}
 	}
 
-	
+
 
 	public boolean listings(int userID ){ // Add Listing details, create a class if required for listings
 		return true;
@@ -129,7 +144,6 @@ public class sqlFunctions {
             // int rowsAffected = stmt.executeUpdate();
             // return rowsAffected > 0;
 			return true;
-
 	} 
 
 
