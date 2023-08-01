@@ -63,10 +63,10 @@ public class sqlFunctions {
 	}
 
 	/** Create a user */
-	public boolean createuser(String name, String email, String password, String address, String occupation, String sin, String dob, boolean host ) throws SQLException{ // Add customer details, or host details create a class if required
+	public boolean createuser(String table, String name, String email, String password, String address, String occupation, String sin, String dob, boolean host ) throws SQLException{ // Add customer details, or host details create a class if required
 		try{
-			String query = "INSERT INTO users (name, email, password, address, occupation, sin, dob) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s')";
-			query = String.format(query, name, email, password, address, occupation, sin, dob);
+			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s')";
+			query = String.format(query, table, name, email, password, address, occupation, sin, dob);
 			this.stmt.execute(query);
 			return true;
 		}catch(Exception e){
@@ -75,23 +75,20 @@ public class sqlFunctions {
 		}
 	}
 
-	public List<String> getUser(String uid){
+	public List<String> getUser(String email){
 		List<String> info = new ArrayList<String>();
-		String query = "SELECT * FROM Users WHERE uid = '%s'";
-		query = String.format(query, uid);
+		String query = "SELECT * FROM user WHERE email = '%s'";
+		query = String.format(query, email);
 		try{
 			ResultSet rs = stmt.executeQuery(query);
 			while(rs.next()) {
+				info.add(rs.getString("name"));
 				info.add(rs.getString("email"));
-				info.add(rs.getString("first_name"));
-				info.add(rs.getString("last_name"));
-				info.add(rs.getString("dob"));
+				info.add(rs.getString("password"));
 				info.add(rs.getString("address"));
 				info.add(rs.getString("occupation"));
 				info.add(rs.getString("sin"));
-				info.add(rs.getString("password"));
-				info.add(rs.getString("cc"));
-				info.add(rs.getString("num_cancellations"));
+				info.add(rs.getString("dob"));
 			}
 			rs.close();
 		}catch(Exception e){
@@ -103,7 +100,7 @@ public class sqlFunctions {
 
 	public ResultSet updateUser(String uid, String name, String email, String pwd, String address, String occup, String sin, String dob){
 		try{
-			String query = "UPDATE users SET name='%s', email='%s', password='%s', address='%s', occupation='%s', sin='%s', dob='%s' WHERE uid = '%s'";
+			String query = "UPDATE user SET name='%s', email='%s', password='%s', address='%s', occupation='%s', sin='%s', dob='%s' WHERE uid = '%s'";
         	query = String.format(query, name, email, pwd, address, occup, sin, dob, uid);
 			return this.stmt.executeQuery(query);
 		}catch(Exception e){
@@ -114,7 +111,7 @@ public class sqlFunctions {
 
 	public ResultSet delUser(String uid){
 		try{
-			String query = "DELETE FROM Users WHERE uid = '%s'";
+			String query = "DELETE FROM user WHERE uid = '%s'";
 			query = String.format(query, uid);
 			return this.stmt.executeQuery(query);
 		}catch(Exception e){

@@ -69,7 +69,8 @@ public class Controller {
             System.out.println("\nConnection Failed");
         }
     }
-
+    /* Logs in User */
+    // TODO Get user info and store in memory
     public void login() throws SQLException {
         String[] cred = new String[2];
         int attempts = 0; // Variable to keep track of login attempts.
@@ -79,31 +80,21 @@ public class Controller {
             cred[0] = sc.nextLine().trim();
             System.out.print("Password: ");
             cred[1] = sc.nextLine();
-    
-            // Check if the login credentials are valid
-            if (!verify_login(cred[0], cred[1])) {
-                attempts++;
-                // Display a message on the second try.
-                if (attempts == 2) {
-                    System.out.println("\nInvalid username or password. Please try again.");
-                }
-            }
+
         } while (!verify_login(cred[0], cred[1]));
         List<String> userInfo = db.getUser(cred[0]);
         // TODO: Find if user is a host or renter
     }
-    private boolean verify_login(String email, String password) throws SQLException {
 
-		List<String> vals = db.select("Users", "password", "email", email);
+    /* Checks if User Exists */
+    private boolean verify_login(String email, String password) throws SQLException {
+		List<String> vals = db.select("user", "password", "email", email);
 		boolean found = vals.size() == 1 && vals.get(0).equals(password);
-		if (!found) {
+		if (!found) { // Check if user exists
             System.out.println("\nInvalid username or password. Please try again.");
 		}
 		return found;
 	}
-
-     
-
 
     /** Sign up as a Host or customer account */
     public void signup() throws SQLException{
@@ -193,8 +184,10 @@ public class Controller {
 
     /** Create a new host account */
     public void host() throws SQLException{
-        String name, email, password, dob, address, occup, sin;
+        String name, email, password, dob, address, occup;
+        String sin = "";
         Boolean verify = true;
+        int sin_number = 0;
         // Getting user input
         System.out.println("\nEnter your name: ");
         name = sc.nextLine();
@@ -219,8 +212,16 @@ public class Controller {
             }
         }while(verify);
 
-        System.out.println("\nEnter your SIN number: ");          // Add do while
-        sin = sc.nextLine();
+        do{ // SIN number
+            System.out.println("\nEnter your SIN number: ");          // Add do while
+            try{
+                sin = sc.nextLine().trim();
+                sin_number = Integer.parseInt(sin);    
+            }catch(Exception e){
+                System.out.println("Invalid input. Please enter SIN without any spaces");
+            }
+        }while(sin.length()!=9);
+        
         System.out.println("\nEnter your email: ");         // Add do while
         email = sc.nextLine();
         System.out.println("\nEnter your password: ");          // Add do while
@@ -229,14 +230,14 @@ public class Controller {
         
         
         // Inserting into database
-        Boolean val = db.createuser(name, email, password, address, occup, sin, dob, true);
+        Boolean val = db.createuser("user", name, email, password, address, occup, sin, dob, true);
         if (val){
             System.out.println("\nAccount created successfully");
         }
         else{
             System.out.println("\nUnable to Create user");
         }
-        signup();
+        Menu();
 
     }
 
