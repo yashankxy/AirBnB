@@ -75,6 +75,7 @@ public class sqlFunctions {
 		}
 	}
 
+	/* Find User */
 	public List<String> getUser(String email){
 		List<String> info = new ArrayList<String>();
 		String query = "SELECT * FROM user WHERE email = '%s'";

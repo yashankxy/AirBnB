@@ -14,6 +14,8 @@ public class Controller {
     Scanner sc = null;
     sqlFunctions db = null;
 
+    //______________________ Basic Operation ______________________ \\
+
     /*  Start */
     public boolean run (){
         if (sc == null)
@@ -23,12 +25,16 @@ public class Controller {
             db.connect();
         return true;
     }
+    
     /** Shut down */
     public boolean close(){
         if (db != null)
             db.disconnect();
         return true;
     }    
+    
+    //___________________________ Menu ____________________________ \\
+
     
     /** Opens up Menu */
     public void Menu() throws SQLException {
@@ -69,6 +75,11 @@ public class Controller {
             System.out.println("\nConnection Failed");
         }
     }
+    
+
+    //______________________ Authentication ______________________ \\
+    
+    
     /* Logs in User */
     // TODO Get user info and store in memory
     public void login() throws SQLException {
@@ -85,16 +96,6 @@ public class Controller {
         List<String> userInfo = db.getUser(cred[0]);
         // TODO: Find if user is a host or renter
     }
-
-    /* Checks if User Exists */
-    private boolean verify_login(String email, String password) throws SQLException {
-		List<String> vals = db.select("user", "password", "email", email);
-		boolean found = vals.size() == 1 && vals.get(0).equals(password);
-		if (!found) { // Check if user exists
-            System.out.println("\nInvalid username or password. Please try again.");
-		}
-		return found;
-	}
 
     /** Sign up as a Host or customer account */
     public void signup() throws SQLException{
@@ -242,5 +243,19 @@ public class Controller {
     }
 
 
+    //______________________ Helper Functions ______________________ \\
+
+
+    /* Checks if User Exists */
+    private boolean verify_login(String email, String password) throws SQLException {
+		List<String> vals = db.select("user", "password", "email", email);
+		boolean found = vals.size() == 1 && vals.get(0).equals(password);
+		if (!found) { // Check if user exists
+            System.out.println("\nInvalid username or password. Please try again.");
+		}
+		return found;
+	}
+
+    
 
 }
