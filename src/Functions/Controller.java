@@ -1,8 +1,13 @@
 package Functions;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Controller {
@@ -43,7 +48,7 @@ public class Controller {
                         case 1:
                             break;
                         case 2:
-                            // login()
+                            login();
                             break;
                         case 3:
                             signup();
@@ -64,6 +69,41 @@ public class Controller {
             System.out.println("\nConnection Failed");
         }
     }
+
+    public void login() throws SQLException {
+        String[] cred = new String[2];
+        int attempts = 0; // Variable to keep track of login attempts.
+    
+        do {
+            System.out.print("Email: ");
+            cred[0] = sc.nextLine().trim();
+            System.out.print("Password: ");
+            cred[1] = sc.nextLine();
+    
+            // Check if the login credentials are valid
+            if (!verify_login(cred[0], cred[1])) {
+                attempts++;
+                // Display a message on the second try.
+                if (attempts == 2) {
+                    System.out.println("\nInvalid username or password. Please try again.");
+                }
+            }
+        } while (!verify_login(cred[0], cred[1]));
+        List<String> userInfo = db.getUser(cred[0]);
+        // TODO: Find if user is a host or renter
+    }
+    private boolean verify_login(String email, String password) throws SQLException {
+
+		List<String> vals = db.select("Users", "password", "email", email);
+		boolean found = vals.size() == 1 && vals.get(0).equals(password);
+		if (!found) {
+            System.out.println("\nInvalid username or password. Please try again.");
+		}
+		return found;
+	}
+
+     
+
 
     /** Sign up as a Host or customer account */
     public void signup() throws SQLException{
@@ -106,6 +146,7 @@ public class Controller {
     }
 
     /** Create a new customer account*/
+    // TODO
     public void renter() throws SQLException{
         // String name, email, password, dob, address, occup, sin;
         // String cc_num, cc_name, cc_exp, cc_cvv;

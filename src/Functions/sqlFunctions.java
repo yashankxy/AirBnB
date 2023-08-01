@@ -123,7 +123,20 @@ public class sqlFunctions {
 		}
 	}
 
-
+	public List<String> select(String tableName, String columnToSelect, String columnToMatch, String value) throws SQLException {
+        List<String> result = new ArrayList<>();
+        try (
+			PreparedStatement stm = con.prepareStatement("SELECT " + columnToSelect + " FROM " + tableName + " WHERE " + columnToMatch + " = ?")) {
+            stm.setString(1, value);
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    String columnValue = rs.getString(columnToSelect);
+                    result.add(columnValue);
+                }
+            }
+        }
+        return result;
+    }
 
 	public boolean listings(int userID ){ // Add Listing details, create a class if required for listings
 		return true;
