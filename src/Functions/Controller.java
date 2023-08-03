@@ -83,9 +83,7 @@ public class Controller {
 
 //______________________ Authentication _______________________ \\
     
-    
     /* Logs in User */
-    // TODO Get user info and store in memory
     public void login() throws SQLException {
         String email, password;
         int attempts = 0; // Variable to keep track of login attempts.
@@ -361,7 +359,10 @@ public class Controller {
 
     }
 
+    // Todo After Listings and Bookings 
+    public void delete() throws SQLException{
 
+    }
 
 //_________________________ Dashboard __________________________ \\
 
