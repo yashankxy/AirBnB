@@ -103,11 +103,11 @@ public class Controller {
         if (userDetails.size() == 8) {
 			user = new Host( userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7));
 			System.out.println("\nWelcome " + user.getName());
-			// hostDashboard();
+			hostDashboard();
 		} else {
 			user = new Renter(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), userDetails.get(8));
 			System.out.println("\nWelcome " + user.getName());
-			// renterDashboard();
+			renterDashboard();
 		}
     }
 
@@ -152,7 +152,6 @@ public class Controller {
     }
 
     /** Create a new customer account*/
-    // TODO
     public void renter() throws SQLException{
         String name, email, password, dob, address, occup;
         String cc_num, cc_name, cc_exp, cc_cvv; 
@@ -177,13 +176,15 @@ public class Controller {
             if (address.length()==0) System.out.println("\nAddress cannot be empty");
         }while(name.length() == 0);
         do{ // Date of Birth
-            System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
+            System.out.println("\nEnter your Date of Birth (dd/mm/yyyy): ");          // Add do while
             dob = sc.nextLine();
             try{
                 Period period; // For date format
                 String[] splitUrl = dob.split("/");
+                if (splitUrl[2].length() != 4) throw new Exception("Invalid date format");
                 LocalDate birthdate = LocalDate.of(Integer.parseInt(splitUrl[2]), Integer.parseInt(splitUrl[1]), Integer.parseInt(splitUrl[0]));
                 LocalDate today = LocalDate.now();
+
                 period = Period.between(birthdate, today);
                 verify= period.getYears()<18;
                 if (verify) System.out.println("\nYou must be 18 years or older to be a host");
@@ -212,20 +213,69 @@ public class Controller {
         
 
         //___________________________Renter Credit card Information________________________________
-        System.out.println("\nEnter your credit card number: ");          // Add do while
-        cc_num = sc.nextLine();
-        System.out.println("\nEnter your credit card name: ");          // Add do while
-        cc_name = sc.nextLine();
-        System.out.println("\nEnter your credit card expiry date (mm/yy): ");          // Add do while
-        cc_exp = sc.nextLine();
-        System.out.println("\nEnter your credit card cvv: ");          // Add do while
-        cc_cvv = sc.nextLine();
+        boolean check = true;
+        do{ // Credit Card Number
+            System.out.println("\nEnter your credit card number: ");          // Add do while
+            cc_num = sc.nextLine();
+            try{
+                cc_num = cc_num.trim();
+                long num = Long.parseLong(cc_num);
+                if (cc_num.length() == 16) {
+                    check = false;
+                } else {
+                    check = true;
+                    System.out.println("Wrong values for credit card number");
+                }
+            }catch(Exception e){
+                System.out.println("Invalid input. Please enter credit card number without any spaces");
+            }
+        }while(check);
+        do{ // Credit Card Name
+            System.out.println("\nEnter your credit card name (fullname): ");          // Add do while
+            cc_name = sc.nextLine();
+            if(cc_name.equals("")) System.out.println("\nName cannot be empty");
+        }while(cc_name.equals(""));
+        check = true; 
+        do{ // Expiry Date
+            System.out.println("\nEnter your credit card expiry date (mm/yy): ");          // Add do while
+            cc_exp = sc.nextLine();
+            try{
+                String[] splitUrl = cc_exp.split("/");
+                int m=Integer.parseInt(splitUrl[0]);
+                int y=Integer.parseInt(splitUrl[1]);
+                if (m <= 12 && m >= 1 && y >= 23 && y <= 99) {
+                    check = false;
+                } else {
+                    check = true;
+                    System.out.println("Wrong values for month or year");
+                }
+            }catch(Exception e){
+                check = true;
+                System.out.println("Invalid format");
+            }
+        }while(check);
+        check = true;
+        do{ // Credit Card CVV
+            System.out.println("\nEnter your credit card cvv: ");          // Add do while
+            cc_cvv = sc.nextLine().trim();
+            try{
+                int cvv = Integer.parseInt(cc_cvv);
+                if (cc_cvv.length() == 3) {
+                    check = false;
+                } else {
+                    check = true;
+                    System.out.println("Wrong values for cvv");
+                }
+            }catch(Exception e){
+                System.out.println("Invalid input. Please enter cvv without any spaces");
+            }
+        }while(check);
 
         // Todo Add Credit card information to database 
 
 
         // Inserting into database
-        Boolean val = db.createuser("user", name, email, password, address, occup, sin, dob, false);
+        Boolean val = db.createrenter("user", name, email, password, address, occup, sin, dob, cc_num, cc_name, cc_exp, cc_cvv);
         if (val){
             System.out.println("\nAccount created successfully");
         }
@@ -258,14 +308,16 @@ public class Controller {
             occup = sc.nextLine();
             if (address.length()==0) System.out.println("\nAddress cannot be empty");
         }while(name.length() == 0);
-        do{ // Date of Birth
-            System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
+       do{ // Date of Birth
+            System.out.println("\nEnter your Date of Birth (dd/mm/yyyy): ");          // Add do while
             dob = sc.nextLine();
             try{
                 Period period; // For date format
                 String[] splitUrl = dob.split("/");
+                if (splitUrl[2].length() != 4) throw new Exception("Invalid date format");
                 LocalDate birthdate = LocalDate.of(Integer.parseInt(splitUrl[2]), Integer.parseInt(splitUrl[1]), Integer.parseInt(splitUrl[0]));
                 LocalDate today = LocalDate.now();
+
                 period = Period.between(birthdate, today);
                 verify= period.getYears()<18;
                 if (verify) System.out.println("\nYou must be 18 years or older to be a host");
@@ -296,7 +348,7 @@ public class Controller {
 
 
         // Inserting into database
-        Boolean val = db.createuser("user", name, email, password, address, occup, sin, dob, true);
+        Boolean val = db.createhost("user", name, email, password, address, occup, sin, dob);
         if (val){
             System.out.println("\nAccount created successfully");
         }
@@ -309,6 +361,15 @@ public class Controller {
 
 
 
+//_________________________ Dashboard __________________________ \\
+
+    private boolean hostDashboard(){
+        return true;
+    }
+
+    private boolean renterDashboard(){
+        return true;
+    }
 
 
 //______________________ Helper Functions ______________________ \\

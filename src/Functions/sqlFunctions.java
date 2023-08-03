@@ -62,8 +62,8 @@ public class sqlFunctions {
 		return rs;
 	}
 
-	/** Create a user */
-	public boolean createuser(String table, String name, String email, String password, String address, String occupation, String sin, String dob, boolean host ) throws SQLException{ // Add customer details, or host details create a class if required
+	/** Create a host */
+	public boolean createhost(String table, String name, String email, String password, String address, String occupation, String sin, String dob ) throws SQLException{ 
 		try{
 			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s')";
 			query = String.format(query, table, name, email, password, address, occupation, sin, dob);
@@ -74,6 +74,21 @@ public class sqlFunctions {
 			return false;
 		}
 	}
+
+	/** Create a renter */
+	public boolean createrenter(String table, String name, String email, String password, String address, String occupation, String sin, String dob, String cc_num, String cc_name, String cc_exp, String cc_cvv ) throws SQLException{ // Add customer details, or host details create a class if required
+		try{
+			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob, cc_num, cc_name, cc_exp, cc_cvv) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s', '%s', '%s', %s, '%s')";
+			query = String.format(query, table, name, email, password, address, occupation, sin, dob, cc_num, cc_name, cc_exp, cc_cvv);
+			this.stmt.execute(query);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
+	}
+
+
 
 	/* Find User */
 	public List<String> getUser(String email){
