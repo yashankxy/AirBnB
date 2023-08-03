@@ -272,8 +272,8 @@ public class Controller {
         }while(check);
 
         // Todo Add Credit card information to database 
-
-
+        
+        
         // Inserting into database
         Boolean val = db.createrenter("user", name, email, password, address, occup, sin, dob, cc_num, cc_name, cc_exp, cc_cvv);
         if (val){

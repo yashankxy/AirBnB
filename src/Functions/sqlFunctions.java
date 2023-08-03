@@ -78,7 +78,7 @@ public class sqlFunctions {
 	/** Create a renter */
 	public boolean createrenter(String table, String name, String email, String password, String address, String occupation, String sin, String dob, String cc_num, String cc_name, String cc_exp, String cc_cvv ) throws SQLException{ // Add customer details, or host details create a class if required
 		try{
-			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob, cc_num, cc_name, cc_exp, cc_cvv) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s', '%s', '%s', %s, '%s')";
+			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob, cc_num, cc_name, cc_exp, cc_cvv) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', '%s')";
 			query = String.format(query, table, name, email, password, address, occupation, sin, dob, cc_num, cc_name, cc_exp, cc_cvv);
 			this.stmt.execute(query);
 			return true;
