@@ -225,7 +225,7 @@ public class Controller {
 
 
         // Inserting into database
-        Boolean val = db.createuser("user",name, email, password, address, occup, sin, dob, false);
+        Boolean val = db.createuser("user", name, email, password, address, occup, sin, dob, false);
         if (val){
             System.out.println("\nAccount created successfully");
         }
