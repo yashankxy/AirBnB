@@ -1,5 +1,6 @@
 package Functions;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -370,8 +371,59 @@ public class Controller {
         return true;
     }
     
-    private boolean renterDashboard(){
+    private boolean renterDashboard() throws SQLException{
         System.out.println("\nWelcome to the Renter Dashboard");
+        if (sc != null && db != null){
+            String val;
+            int choice;
+            do {
+                System.out.println("\n Options: \n"+
+                                "        1. Exit \n"+
+                                "        2. Make Booking\n"+
+                                "        3. Cancel Booking\n"+
+                                "        4. Search Listings\n"+
+                                "        5. Rate my Bookings\n"+
+                                "        6. View Profile\n"+
+                                "        7. Logout \n");
+                System.out.print("Select: ");
+                val = sc.nextLine();
+                try {
+                    choice = Integer.parseInt(val);
+                    switch (choice) { 
+                        case 1:
+                            break;
+                        case 2:
+                            renterDashboard();
+                            break;
+                        case 3:
+                            renterDashboard();
+                            break;
+                        case 4:
+                            renterDashboard();
+                            break;
+                        case 5:
+                            renterDashboard();
+                            break;
+                        case 6:
+                            renterDashboard();
+                            break;
+                        case 7:
+                            Menu();
+                            break;
+                        default:
+                            System.out.println("Invalid option");
+                            break;
+                    }
+                } catch (NumberFormatException e) {
+                    val = "-1";
+                }
+            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0 && val.compareTo("6") != 0 && val.compareTo("7") != 0);
+            if (val.equals("1")) close();    
+            
+        }else {
+            System.out.println("\nConnection Failed");
+        }
+
         return true;
     }
 
