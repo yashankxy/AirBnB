@@ -87,25 +87,27 @@ public class Controller {
     /* Logs in User */
     // TODO Get user info and store in memory
     public void login() throws SQLException {
-        String[] cred = new String[2];
+        String email, password;
         int attempts = 0; // Variable to keep track of login attempts.
     
         do {
             System.out.print("Email: ");
-            cred[0] = sc.nextLine().trim();
+            email = sc.nextLine().trim();
             System.out.print("Password: ");
-            cred[1] = sc.nextLine();
+            password = sc.nextLine();
 
-        } while (!verify_login(cred[0], cred[1]));
-        List<String> userDetails = db.getUser(cred[0]);
+        } while (!verify_login(email, password));
+        List<String> userDetails = db.getUser(email);
+        System.out.println(userDetails);
+        
         // TODO Find if user is a host or renter
         Users user;
-        if (userDetails.size() == 8) {
-			user = new Host( userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7));
+        if (userDetails.get(7) == null) {
+			user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
 			System.out.println("\nWelcome " + user.getName());
 			hostDashboard();
 		} else {
-			user = new Renter(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), userDetails.get(8));
+			user = new Renter(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), userDetails.get(8), userDetails.get(9), userDetails.get(10));
 			System.out.println("\nWelcome " + user.getName());
 			renterDashboard();
 		}
@@ -364,10 +366,12 @@ public class Controller {
 //_________________________ Dashboard __________________________ \\
 
     private boolean hostDashboard(){
+        System.out.println("\nWelcome to the Host Dashboard");
         return true;
     }
-
+    
     private boolean renterDashboard(){
+        System.out.println("\nWelcome to the Renter Dashboard");
         return true;
     }
 

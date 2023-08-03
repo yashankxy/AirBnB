@@ -105,6 +105,10 @@ public class sqlFunctions {
 				info.add(rs.getString("occupation"));
 				info.add(rs.getString("sin"));
 				info.add(rs.getString("dob"));
+				info.add(rs.getString("cc_num"));
+				info.add(rs.getString("cc_name"));
+				info.add(rs.getString("cc_exp"));
+				info.add(rs.getString("cc_cvv"));
 			}
 			rs.close();
 		}catch(Exception e){
