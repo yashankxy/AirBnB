@@ -2,13 +2,12 @@ package Users;
 
 public abstract class Users {
 
-	String email, firstName, lastName,pwd, dob, occup, sin, addr;
+	String email, name,pwd, dob, occup, sin, addr;
 	int cancellations;
 
-	public Users(String email, String firstName, String lastName, String dob, String addr, String occup, String sin, String pwd, String cancellations) {
+	public Users(String email, String name, String dob, String addr, String occup, String sin, String pwd, String cancellations) {
 		this.email = email;
-		this.firstName = firstName;
-		this.lastName = lastName;
+		this.name = name;
 		this.dob = dob;
 		this.addr = addr;
 		this.occup = occup;
@@ -25,20 +24,12 @@ public abstract class Users {
 		this.email = email;
 	}
 
-	public String getFirstName() {
-		return firstName;
+	public String getName() {
+		return name;
 	}
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getDob() {

@@ -10,11 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import Users.Host;
+import Users.Renter;
+import Users.Users;
+
 public class Controller {
     Scanner sc = null;
     sqlFunctions db = null;
 
-    //______________________ Basic Operation ______________________ \\
+//______________________ Basic Operation ______________________ \\
 
     /*  Start */
     public boolean run (){
@@ -33,7 +37,7 @@ public class Controller {
         return true;
     }    
     
-    //___________________________ Menu ____________________________ \\
+//___________________________ Menu ____________________________ \\
 
     
     /** Opens up Menu */
@@ -77,7 +81,7 @@ public class Controller {
     }
     
 
-    //______________________ Authentication ______________________ \\
+//______________________ Authentication _______________________ \\
     
     
     /* Logs in User */
@@ -93,8 +97,18 @@ public class Controller {
             cred[1] = sc.nextLine();
 
         } while (!verify_login(cred[0], cred[1]));
-        List<String> userInfo = db.getUser(cred[0]);
-        // TODO: Find if user is a host or renter
+        List<String> userDetails = db.getUser(cred[0]);
+        // TODO Find if user is a host or renter
+        Users user;
+        if (userDetails.size() == 8) {
+			user = new Host( userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7));
+			System.out.println("\nWelcome " + user.getName());
+			// hostDashboard();
+		} else {
+			user = new Renter(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), userDetails.get(8));
+			System.out.println("\nWelcome " + user.getName());
+			// renterDashboard();
+		}
     }
 
     /** Sign up as a Host or customer account */
@@ -140,63 +154,28 @@ public class Controller {
     /** Create a new customer account*/
     // TODO
     public void renter() throws SQLException{
-        // String name, email, password, dob, address, occup, sin;
-        // String cc_num, cc_name, cc_exp, cc_cvv;
-
-        // // Getting user input
-        // System.out.println("\nEnter your name: ");
-        // name = sc.nextLine();
-        // System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
-        // dob = sc.nextLine();
-        // System.out.println("\nEnter your address: ");          // Add do while
-        // address = sc.nextLine();
-        // System.out.println("\nEnter your occupation: ");
-        // occup = sc.nextLine();
-        // System.out.println("\nEnter your SIN number: ");          // Add do while
-        // sin = sc.nextLine();
-        // System.out.println("\nEnter your email: ");         // Add do while
-        // email = sc.nextLine();
-        // System.out.println("\nEnter your password: ");          // Add do while
-        // password = sc.nextLine();
-
-        // //___________________________Renter Credit card Information________________________________
-        // System.out.println("\nEnter your credit card number: ");          // Add do while
-        // cc_num = sc.nextLine();
-        // System.out.println("\nEnter your credit card name: ");          // Add do while
-        // cc_name = sc.nextLine();
-        // System.out.println("\nEnter your credit card expiry date (mm/yy): ");          // Add do while
-        // cc_exp = sc.nextLine();
-        // System.out.println("\nEnter your credit card cvv: ");          // Add do while
-        // cc_cvv = sc.nextLine();
-        // // Check if already exists
-        //     // if (db.checkCustomer(email, password)){
-        //     //     System.out.println("\nAccount already exists");
-
-        // // Inserting into database
-        // Boolean val = db.createuser(name, email, password, address, occup, sin, dob, false);
-        // if (val){
-        //     System.out.println("\nAccount created successfully");
-        // }
-        // else{
-        //     System.out.println("Unable to Create user");
-        // }
-        // signup();
-    }
-
-    /** Create a new host account */
-    public void host() throws SQLException{
         String name, email, password, dob, address, occup;
+        String cc_num, cc_name, cc_exp, cc_cvv; 
         String sin = "";
         Boolean verify = true;
         int sin_number = 0;
-        // Getting user input
-        System.out.println("\nEnter your name: ");
-        name = sc.nextLine();
-        System.out.println("\nEnter your address: ");          
-        address = sc.nextLine();
-        System.out.println("\nEnter your occupation: ");
-        occup = sc.nextLine();
-
+        
+         // Getting user input
+        do { // Name
+            System.out.println("\nEnter your name: ");
+            name = sc.nextLine();
+            if (name.length() == 0) System.out.println("\nName cannot be empty");
+        }while(name.length() == 0);
+        do{// Address
+            System.out.println("\nEnter your address: ");          
+            address = sc.nextLine();
+            if (address.length()==0) System.out.println("\nAddress cannot be empty");
+        }while(name.length() == 0);
+        do{// Occupation
+            System.out.println("\nEnter your occupation: ");
+            occup = sc.nextLine();
+            if (address.length()==0) System.out.println("\nAddress cannot be empty");
+        }while(name.length() == 0);
         do{ // Date of Birth
             System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
             dob = sc.nextLine();
@@ -212,7 +191,6 @@ public class Controller {
                 System.out.println("Invalid date format");
             }
         }while(verify);
-
         do{ // SIN number
             System.out.println("\nEnter your SIN number: ");          // Add do while
             try{
@@ -221,15 +199,102 @@ public class Controller {
             }catch(Exception e){
                 System.out.println("Invalid input. Please enter SIN without any spaces");
             }
-        }while(sin.length()!=9);
-        
-        System.out.println("\nEnter your email: ");         // Add do while
-        email = sc.nextLine();
+        }while(checkuser("user", "sin", sin) || sin.length()!=9);
+        do { // Email
+            System.out.println("\nEnter your email: ");         // Add do while
+            email = sc.nextLine();
+			if(email.equals("")) {
+				System.out.println("Email cannot be empty");
+			}
+		} while (checkuser("user", "email", email) || email.equals(""));
         System.out.println("\nEnter your password: ");          // Add do while
         password = sc.nextLine();
         
+
+        //___________________________Renter Credit card Information________________________________
+        System.out.println("\nEnter your credit card number: ");          // Add do while
+        cc_num = sc.nextLine();
+        System.out.println("\nEnter your credit card name: ");          // Add do while
+        cc_name = sc.nextLine();
+        System.out.println("\nEnter your credit card expiry date (mm/yy): ");          // Add do while
+        cc_exp = sc.nextLine();
+        System.out.println("\nEnter your credit card cvv: ");          // Add do while
+        cc_cvv = sc.nextLine();
+
+        // Todo Add Credit card information to database 
+
+
+        // Inserting into database
+        Boolean val = db.createuser("user",name, email, password, address, occup, sin, dob, false);
+        if (val){
+            System.out.println("\nAccount created successfully");
+        }
+        else{
+            System.out.println("Unable to Create user");
+        }
+        signup();
+    }
+
+    /** Create a new host account */
+    public void host() throws SQLException{
+        String name, email, password, dob, address, occup;
+        String sin = "";
+        Boolean verify = true;
+        int sin_number = 0;
+
+        // Getting user input
+        do { // Name
+            System.out.println("\nEnter your name: ");
+            name = sc.nextLine();
+            if (name.length() == 0) System.out.println("\nName cannot be empty");
+        }while(name.length() == 0);
+        do{// Address
+            System.out.println("\nEnter your address: ");          
+            address = sc.nextLine();
+            if (address.length()==0) System.out.println("\nAddress cannot be empty");
+        }while(name.length() == 0);
+        do{// Occupation
+            System.out.println("\nEnter your occupation: ");
+            occup = sc.nextLine();
+            if (address.length()==0) System.out.println("\nAddress cannot be empty");
+        }while(name.length() == 0);
+        do{ // Date of Birth
+            System.out.println("\nEnter your Date of Birth (dd/mm/yy): ");          // Add do while
+            dob = sc.nextLine();
+            try{
+                Period period; // For date format
+                String[] splitUrl = dob.split("/");
+                LocalDate birthdate = LocalDate.of(Integer.parseInt(splitUrl[2]), Integer.parseInt(splitUrl[1]), Integer.parseInt(splitUrl[0]));
+                LocalDate today = LocalDate.now();
+                period = Period.between(birthdate, today);
+                verify= period.getYears()<18;
+                if (verify) System.out.println("\nYou must be 18 years or older to be a host");
+            }catch(Exception e){
+                System.out.println("Invalid date format");
+            }
+        }while(verify);
+        do{ // SIN number
+            System.out.println("\nEnter your SIN number: ");          // Add do while
+            try{
+                sin = sc.nextLine().trim();
+                sin_number = Integer.parseInt(sin);    
+            }catch(Exception e){
+                System.out.println("Invalid input. Please enter SIN without any spaces");
+            }
+        }while(checkuser("user", "sin", sin) || sin.length()!=9);
+       
+        do { // Email
+            System.out.println("\nEnter your email: ");         // Add do while
+            email = sc.nextLine();
+			if(email.equals("")) {
+				System.out.println("Email cannot be empty");
+			}
+		} while (checkuser("user", "email", email) || email.equals(""));
+        System.out.println("\nEnter your password: ");          // Add do while
+        password = sc.nextLine();
         
-        
+
+
         // Inserting into database
         Boolean val = db.createuser("user", name, email, password, address, occup, sin, dob, true);
         if (val){
@@ -243,7 +308,10 @@ public class Controller {
     }
 
 
-    //______________________ Helper Functions ______________________ \\
+
+
+
+//______________________ Helper Functions ______________________ \\
 
 
     /* Checks if User Exists */
@@ -256,6 +324,13 @@ public class Controller {
 		return found;
 	}
 
-    
+    private boolean checkuser(String table, String col, String value) throws SQLException{
+        List<String> vals = db.select(table, col, col, value);
+        if (vals.size() == 1) {
+            System.out.println("\nAccount already exists");
+            return true;
+        } 
+        return false;
+    }
 
 }

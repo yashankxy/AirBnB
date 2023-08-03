@@ -1,7 +1,7 @@
 package Users;
 
 public class Host extends Users {
-	public Host(String email, String firstName, String lastName, String dob, String address, String occupation, String sin, String password, String cancellations) {
-		super(email, firstName, lastName, dob, address, occupation, sin, password, cancellations);
+	public Host(String email, String name, String dob, String address, String occupation, String sin, String password, String cancellations) {
+		super(email, name, dob, address, occupation, sin, password, cancellations);
 	}
 }
