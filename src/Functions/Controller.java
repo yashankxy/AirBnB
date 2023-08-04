@@ -42,7 +42,7 @@ public class Controller {
 
     
     /** Opens up Menu */
-    public void Menu() throws SQLException {
+    public void Menu() throws SQLException, InterruptedException {
         if (sc != null && db != null) {
             String val;
             int choice;
@@ -87,7 +87,7 @@ public class Controller {
     
     /* Logs in User */
     // TODO Get user info and store in memory
-    public void login() throws SQLException {
+    public void login() throws SQLException, InterruptedException {
         String email, password;
     
         do {
@@ -371,8 +371,65 @@ public class Controller {
 
 //_________________________ Dashboard __________________________ \\
 
-    private boolean hostDashboard(String email){
-        System.out.println("\nWelcome to the Host Dashboard");
+    private boolean hostDashboard(String email) throws SQLException, InterruptedException{
+        System.out.println("\nWelcome to the Renter Dashboard");
+        String host_id = db.getIdFromEmail(email);
+        if (sc != null && db != null){
+            String val;
+            int choice;
+            do {
+                System.out.println("\n Options: \n"+
+                                "        1. Exit \n"+
+                                "        2. Add Listing\n"+
+                                "        3. Cancel Booking\n"+
+                                "        4. Search Listings\n"+
+                                "        5. Rate my Bookings\n"+
+                                "        6. View Profile\n"+
+                                "        7. Logout \n");
+                System.out.print("Select: ");
+                val = sc.nextLine();
+                try {
+                    choice = Integer.parseInt(val);
+                    switch (choice) { 
+                        case 1:
+                            break;
+                        case 2:
+                            // Add Listing;
+                            HDashAddListing(host_id);
+                            hostDashboard(email);
+                            break;
+                        case 3:
+                            // cancelBooking();
+                            hostDashboard(email);
+                            break;
+                        case 4:
+                            // searchListings();
+                            hostDashboard(email);
+                            break;
+                        case 5:
+                            // rateBookings();
+                            hostDashboard(email);
+                            break;
+                        case 6:
+                            hostDashboard(email);
+                            break;
+                        case 7:
+                            Menu();
+                            break;
+                        default:
+                            System.out.println("Invalid option");
+                            break;
+                    }
+                } catch (NumberFormatException e) {
+                    val = "-1";
+                }
+            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0 && val.compareTo("6") != 0 && val.compareTo("7") != 0);
+            if (val.equals("1")) close();    
+            
+        }else {
+            System.out.println("\nConnection Failed");
+        }
+
         return true;
     }
     
@@ -437,6 +494,121 @@ public class Controller {
         return true;
     }
 
+    /** New Listing */
+    public void HDashAddListing(String host_id) throws SQLException {
+        float latitude, longitude, pricing;
+        String type_of_listing, postal_code, city, country;
+        
+        // Loop until valid city input is provided or user inputs "exit"
+        do {
+            System.out.print("City: ");
+            city = sc.nextLine().trim();
+            if (city.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            if (city.isEmpty()){
+                System.out.print("Please complete the field \n");
+            }
+        } while (city.isEmpty()); // Continue asking if city is empty
+
+        // Loop until valid country input is provided or user inputs "exit"
+        do {
+            System.out.print("Country: ");
+            country = sc.nextLine().trim();
+            if (country.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            if (country.isEmpty()){
+                System.out.print("Please complete the field \n");
+            }
+        } while (country.isEmpty()); // Continue asking if country is empty
+
+        // Loop until valid postal code input is provided or user inputs "exit"
+        do {
+            System.out.print("Postal Code (type 'exit' to cancel): ");
+            postal_code = sc.nextLine().trim();
+            if (postal_code.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            if (postal_code.isEmpty()){
+                System.out.print("Please complete the field \n");
+            }
+        } while (postal_code.isEmpty()); // Continue asking if postal code is empty
+
+        // Loop until valid latitude input is provided or user inputs "exit"
+        do {
+            System.out.print("Latitude: ");
+            String input = sc.nextLine().trim();
+            if (input.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            try {
+                latitude = Float.parseFloat(input);
+            } catch (NumberFormatException e) {
+                latitude = 200; // Set latitude to null if invalid number format
+            }
+            if (latitude > 90 || latitude < -90){
+                System.out.print("Please input a valid value \n");
+            }
+        } while (latitude > 90 || latitude < -90); // Continue asking if latitude is not a valid integer
+
+        // Loop until valid longitude input is provided or user inputs "exit"
+        do {
+            System.out.print("Longitude: ");
+            String input = sc.nextLine().trim();
+            if (input.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            try {
+                longitude = Float.parseFloat(input);
+            } catch (NumberFormatException e) {
+                longitude = 200; // Set longitude to null if invalid number format
+            }
+            if (longitude > 180 || longitude < -180){
+                System.out.print("Please input a valid value \n");
+            }
+        } while (longitude > 180 || longitude < -180); // Continue asking if longitude is not a valid integer
+
+        // Loop until valid pricing input is provided or user inputs "exit"
+        do {
+            System.out.print("Pricing: ");
+            String input = sc.nextLine().trim();
+            if (input.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            try {
+                pricing = Float.parseFloat(input);
+            } catch (NumberFormatException e) {
+                pricing = -1; // Set pricing to null if invalid number format
+            }
+            if (pricing < 0){
+                System.out.print("Please input a valid value \n");
+            }
+        } while (pricing < 0); // Continue asking if pricing is not a valid integer
+
+        // Loop until valid type_of_listing input is provided or user inputs "exit"
+        do {
+            System.out.print("Type of Listing (full house, apartment, room): ");
+            type_of_listing = sc.nextLine().trim().toLowerCase();
+            if (type_of_listing.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            if (!type_of_listing.equals("full house") &&
+                 !type_of_listing.equals("apartment") &&
+                 !type_of_listing.equals("room")){
+                    System.out.print("Please input one of the valid values: full house, apartment or room\n");
+                 }
+        } while (!type_of_listing.equals("full house") &&
+                 !type_of_listing.equals("apartment") &&
+                 !type_of_listing.equals("room")); // Continue asking if invalid type_of_listing
+
+        // Inserting into database
+        Boolean res = db.createListing(host_id, latitude, longitude, pricing, 
+                    type_of_listing, postal_code, city, country);
+        if (res){
+            System.out.println("\n New Listing added! :)\n");
+        }
+    }
 
 //______________________ Helper Functions ______________________ \\
 

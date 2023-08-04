@@ -220,7 +220,37 @@ public class sqlFunctions {
 			return true;
 	} 
 
-
+	/** Returns the id that corresponds to the given email**/
+	public String getIdFromEmail(String email){
+		try{
+			String query = "SELECT id FROM user WHERE email = '%s'";
+			query = String.format(query,email);
+			ResultSet rs = this.stmt.executeQuery(query);
+			if (rs.next()) {
+                // Get the id value from the result set and convert it to string
+                return Integer.toString(rs.getInt("id"));
+            }
+			return "";
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return "";
+		}
+	}	
+	
+	public boolean createListing(String host_id, float latitude, float longitude, float pricing,
+	String type_of_listing, String postal_code, String city, String country) {
+		try{
+			String query = "INSERT INTO listing (host_id, latitude, longitude, pricing, type_of_listing, postal_code, city, country)"
+							+ "VALUES (%s, %s,%s, %s, '%s', '%s', '%s', '%s')";
+			query = String.format(query,host_id, latitude, longitude, pricing, 
+			type_of_listing, postal_code, city, country);
+			this.stmt.execute(query);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
+	}
 
 
 }
