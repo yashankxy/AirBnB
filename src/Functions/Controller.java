@@ -27,7 +27,6 @@ public class Controller {
             sc = new Scanner(System.in);
         if (db == null)
             db = new sqlFunctions();
-        db.initiate_tables_and_db() ;
         db.connect();
         return true;
     }
