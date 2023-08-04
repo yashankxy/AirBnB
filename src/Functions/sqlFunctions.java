@@ -190,7 +190,7 @@ public class sqlFunctions {
 	}
 
 	/** Create a host */
-	public boolean createhost(String table, String name, String email, String password, String address, String occupation, String sin, String dob ) throws SQLException{ 
+	public boolean createuser(String table, String name, String email, String password, String address, String occupation, String sin, String dob ) throws SQLException{ 
 		try{
 			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s')";
 			query = String.format(query, table, name, email, password, address, occupation, sin, dob);
@@ -202,11 +202,37 @@ public class sqlFunctions {
 		}
 	}
 
-	/** Create a renter */
-	public boolean createrenter(String table, String name, String email, String password, String address, String occupation, String sin, String dob, String cc_num, String cc_name, String cc_exp, String cc_cvv ) throws SQLException{ // Add customer details, or host details create a class if required
+
+	public int createuser1(String table, String name, String email, String password, String address, String occupation, String sin, String dob) throws SQLException {
+		try {
+			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob) VALUES ('%s', '%s', '%s', '%s', '%s', %s, '%s')";
+			query = String.format(query, table, name, email, password, address, occupation, sin, dob);
+	
+			// Execute the insertion query and get the auto-generated keys (ID).
+			PreparedStatement pstmt = this.con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+			pstmt.executeUpdate();
+	
+			// Retrieve the auto-generated ID.
+			int id = -1;
+			try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					id = generatedKeys.getInt(1);
+				}
+			}
+	
+			return id; // Return the auto-generated ID.
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return -1; // Return -1 to indicate an error.
+		}
+	}
+	
+
+	/** Create a Table for credit card */
+	public boolean link_cc(String cc_num, String cc_name, String cc_exp, String cc_cvv, int uid) throws SQLException{ 
 		try{
-			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob, cc_num, cc_name, cc_exp, cc_cvv) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', '%s')";
-			query = String.format(query, table, name, email, password, address, occupation, sin, dob, cc_num, cc_name, cc_exp, cc_cvv);
+			String query = "INSERT INTO `cc` (cc_num, cc_name, cc_exp, cc_cvv, uid) VALUES ('%s', '%s','%s', '%s', '%s')";
+			query = String.format(query, cc_num, cc_name, cc_exp, cc_cvv, uid);
 			this.stmt.execute(query);
 			return true;
 		}catch(Exception e){
@@ -214,8 +240,6 @@ public class sqlFunctions {
 			return false;
 		}
 	}
-
-
 
 	/* Find User */
 	public List<String> getUser(String email){
@@ -225,6 +249,7 @@ public class sqlFunctions {
 		try{
 			ResultSet rs = stmt.executeQuery(query);
 			while(rs.next()) {
+				info.add(String.valueOf(rs.getInt("id")));
 				info.add(rs.getString("name"));
 				info.add(rs.getString("email"));
 				info.add(rs.getString("password"));
@@ -232,6 +257,24 @@ public class sqlFunctions {
 				info.add(rs.getString("occupation"));
 				info.add(rs.getString("sin"));
 				info.add(rs.getString("dob"));
+				info.add(String.valueOf(rs.getBoolean("renter")));
+			}
+			rs.close();
+		}catch(Exception e){
+			System.out.println("Unable to extract information");
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		}
+		return info;
+	}
+
+	/** Get CC details */
+	public List<String> getcc(int uid){
+		List<String> info = new ArrayList<String>();
+		String query = "SELECT * FROM cc WHERE id = '%s'";
+		query = String.format(query, uid);
+		try{
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next()) {
 				info.add(rs.getString("cc_num"));
 				info.add(rs.getString("cc_name"));
 				info.add(rs.getString("cc_exp"));
@@ -239,9 +282,10 @@ public class sqlFunctions {
 			}
 			rs.close();
 		}catch(Exception e){
-			System.out.println("Unable to extract information");
+			System.out.println("Unable to extract Credit Card details");
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 		}
+
 		return info;
 	}
 

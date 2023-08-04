@@ -1,5 +1,6 @@
 package Functions;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -89,7 +90,6 @@ public class Controller {
     // TODO Get user info and store in memory
     public void login() throws SQLException {
         String email, password;
-        int attempts = 0; // Variable to keep track of login attempts.
     
         do {
             System.out.print("Email: ");
@@ -99,18 +99,19 @@ public class Controller {
 
         } while (!verify_login(email, password));
         List<String> userDetails = db.getUser(email);
-        System.out.println(userDetails);
         
-        // TODO Find if user is a host or renter
         Users user;
-        if (userDetails.get(7) == null) {
-			user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
-			System.out.println("\nWelcome " + user.getName());
-			hostDashboard();
-		} else {
-			user = new Renter(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), userDetails.get(8), userDetails.get(9), userDetails.get(10));
-			System.out.println("\nWelcome " + user.getName());
-			renterDashboard();
+        if (userDetails.get(8) == "true") { // Renter Dashboard
+            System.out.println(userDetails);
+            List<String> ccdetails = db.getcc(Integer.valueOf(userDetails.get(0)));
+            System.out.println(ccdetails);
+            	user = new Renter(userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), ccdetails.get(0), ccdetails.get(1), ccdetails.get(2), ccdetails.get(3));
+            	System.out.println("\nWelcome " + user.getName());
+            	renterDashboard();
+        } else { // Host dashboard
+            	user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
+            	System.out.println("\nWelcome " + user.getName());
+            	hostDashboard();
 		}
     }
 
@@ -160,7 +161,6 @@ public class Controller {
         String cc_num, cc_name, cc_exp, cc_cvv; 
         String sin = "";
         Boolean verify = true;
-        int sin_number = 0;
         
          // Getting user input
         do { // Name
@@ -199,7 +199,7 @@ public class Controller {
             System.out.println("\nEnter your SIN number: ");          // Add do while
             try{
                 sin = sc.nextLine().trim();
-                sin_number = Integer.parseInt(sin);    
+                Integer.parseInt(sin);    
             }catch(Exception e){
                 System.out.println("Invalid input. Please enter SIN without any spaces");
             }
@@ -273,18 +273,26 @@ public class Controller {
                 System.out.println("Invalid input. Please enter cvv without any spaces");
             }
         }while(check);
-
-        // Todo Add Credit card information to database 
-        
         
         // Inserting into database
-        Boolean val = db.createrenter("user", name, email, password, address, occup, sin, dob, cc_num, cc_name, cc_exp, cc_cvv);
-        if (val){
-            System.out.println("\nAccount created successfully");
-        }
-        else{
+        int val = db.createuser1("user", name, email, password, address, occup, sin, dob);
+        if (val == -1){
             System.out.println("Unable to Create user");
         }
+        else{
+            System.out.println("\nAccount created successfully");
+        }
+        // Credit information inserting into CC table
+        Boolean val1 = db.link_cc(cc_num, cc_name, cc_exp, cc_cvv, val);
+        if (val1){
+            System.out.println("\nCredit card details added successfully");
+        }
+        else{
+            System.out.println("Unable to add credit card details");
+            // Todo: Delete user from user table
+            // renter();
+        }
+
         signup();
     }
 
@@ -293,7 +301,6 @@ public class Controller {
         String name, email, password, dob, address, occup;
         String sin = "";
         Boolean verify = true;
-        int sin_number = 0;
 
         // Getting user input
         do { // Name
@@ -332,7 +339,7 @@ public class Controller {
             System.out.println("\nEnter your SIN number: ");          // Add do while
             try{
                 sin = sc.nextLine().trim();
-                sin_number = Integer.parseInt(sin);    
+                Integer.parseInt(sin);    
             }catch(Exception e){
                 System.out.println("Invalid input. Please enter SIN without any spaces");
             }
@@ -351,7 +358,7 @@ public class Controller {
 
 
         // Inserting into database
-        Boolean val = db.createhost("user", name, email, password, address, occup, sin, dob);
+        Boolean val = db.createuser("user", name, email, password, address, occup, sin, dob);
         if (val){
             System.out.println("\nAccount created successfully");
         }
@@ -371,8 +378,59 @@ public class Controller {
         return true;
     }
     
-    private boolean renterDashboard(){
+    private boolean renterDashboard() throws SQLException{
         System.out.println("\nWelcome to the Renter Dashboard");
+        if (sc != null && db != null){
+            String val;
+            int choice;
+            do {
+                System.out.println("\n Options: \n"+
+                                "        1. Exit \n"+
+                                "        2. Make Booking\n"+
+                                "        3. Cancel Booking\n"+
+                                "        4. Search Listings\n"+
+                                "        5. Rate my Bookings\n"+
+                                "        6. View Profile\n"+
+                                "        7. Logout \n");
+                System.out.print("Select: ");
+                val = sc.nextLine();
+                try {
+                    choice = Integer.parseInt(val);
+                    switch (choice) { 
+                        case 1:
+                            break;
+                        case 2:
+                            renterDashboard();
+                            break;
+                        case 3:
+                            renterDashboard();
+                            break;
+                        case 4:
+                            renterDashboard();
+                            break;
+                        case 5:
+                            renterDashboard();
+                            break;
+                        case 6:
+                            renterDashboard();
+                            break;
+                        case 7:
+                            Menu();
+                            break;
+                        default:
+                            System.out.println("Invalid option");
+                            break;
+                    }
+                } catch (NumberFormatException e) {
+                    val = "-1";
+                }
+            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0 && val.compareTo("6") != 0 && val.compareTo("7") != 0);
+            if (val.equals("1")) close();    
+            
+        }else {
+            System.out.println("\nConnection Failed");
+        }
+
         return true;
     }
 
