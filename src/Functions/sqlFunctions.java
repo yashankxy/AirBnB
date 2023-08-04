@@ -16,8 +16,8 @@ public class sqlFunctions {
 	public Connection con = null;
 	public Statement stmt = null;
 
-
-	/** Connects and Initialize */
+	
+	/** Connects **/
 	public boolean connect() {
 		boolean result = true;
 		try {
