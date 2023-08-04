@@ -16,8 +16,8 @@ public class sqlFunctions {
 	public Connection con = null;
 	public Statement stmt = null;
 
-
-	/** Connects and Initialize */
+	
+	/** Connects **/
 	public boolean connect() {
 		boolean result = true;
 		try {
@@ -49,6 +49,133 @@ public class sqlFunctions {
 			con =null;
 		}
 	}
+
+	/** Initiate **/
+	public boolean initiate_tables_and_db() {
+		boolean result = true;
+		String CON_url = "jdbc:mysql://127.0.0.1";
+		try {
+			Scanner sc = new Scanner(System.in);
+
+			Class.forName(DBc);
+			con = DriverManager.getConnection(CON_url, USER, PASS);
+			System.out.println("Connected to MySQL Server");
+			this.stmt = con.createStatement();
+			// sc.close();
+		} catch ( Exception e ) {
+			result = false;
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			e.printStackTrace();
+			System.exit(0);
+		}
+
+		try {
+            // Check if the database exists
+            ResultSet resultSet = this.stmt.executeQuery("SHOW DATABASES LIKE 'airbnb'");
+            if (!resultSet.next()) {
+                // If the database doesn't exist, create it
+                this.stmt.executeUpdate("CREATE DATABASE airbnb");
+                System.out.println("Database airbnb created successfully.");
+            } else {
+                System.out.println("Database airbnb already exists.");
+            }
+        } 
+		catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String createTableuser = "CREATE TABLE IF NOT EXISTS airbnb.user("
+                + "id INT AUTO_INCREMENT PRIMARY KEY,"
+                + "username VARCHAR(50) NOT NULL,"
+                + "email VARCHAR(100) NOT NULL UNIQUE,"
+                + "password VARCHAR(100) NOT NULL"
+                + ");";
+		
+		try {
+			this.stmt.executeUpdate(createTableuser);
+			System.out.println("Table user created successfully.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		String createTablelisting = "CREATE TABLE IF NOT EXISTS airbnb.listing("
+                + "id INT AUTO_INCREMENT PRIMARY KEY,"
+                + "renter_id INT NOT NULL,"
+                + "type_of_listing ENUM('full house', 'apartment', 'room') NOT NULL,"
+                + "latitude INT NOT NULL,"
+				+ "longitude INT NOT NULL,"
+				+ "postal_code VARCHAR(10),"
+				+ "city VARCHAR(100),"
+				+ "country VARCHAR(100),"
+				+ "pricing INT NOT NULL DEFAULT 0,"
+				+ "FOREIGN KEY (renter_id) REFERENCES user (id)" + //
+						"    ON DELETE CASCADE"
+                + ");";
+		try {
+			this.stmt.executeUpdate(createTablelisting);
+			System.out.println("Table listing created successfully.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	
+		String createTablelistingamenities = "CREATE TABLE IF NOT EXISTS airbnb.listing_amenities("
+                + "listing_id INT PRIMARY KEY,"
+				+ "wifi BOOLEAN NOT NULL DEFAULT 0,"
+				+ "washer BOOLEAN NOT NULL DEFAULT 0,"
+				+ "air_conditioning BOOLEAN NOT NULL DEFAULT 0,"
+				+ "dedicated_workspace BOOLEAN NOT NULL DEFAULT 0,"
+				+ "hair_dryer BOOLEAN NOT NULL DEFAULT 0,"
+				+ "kitchen BOOLEAN NOT NULL DEFAULT 0,"
+				+ "dryer BOOLEAN NOT NULL DEFAULT 0,"
+				+ "heating BOOLEAN NOT NULL DEFAULT 0,"
+				+ "tv BOOLEAN NOT NULL DEFAULT 0,"
+				+ "iron BOOLEAN NOT NULL DEFAULT 0,"
+				+ "FOREIGN KEY (listing_id) REFERENCES listing (id)" + //
+						"    ON DELETE CASCADE"
+                + ");";
+		try {
+			this.stmt.executeUpdate(createTablelistingamenities);
+			System.out.println("Table listing_amenities created successfully.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		// Create the availability table
+		String createTableAvailability = "CREATE TABLE IF NOT EXISTS airbnb.availability ("
+		+ "listing_id INT NOT NULL,"
+		+ "date Date NOT NULL,"
+		+ "PRIMARY KEY (listing_id, date),"
+		+ "FOREIGN KEY (listing_id) REFERENCES listing (id) ON DELETE CASCADE"
+		+ ");";
+		
+		try {
+			this.stmt.executeUpdate(createTableAvailability);
+			System.out.println("Table availability created successfully.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		// Create the booked table
+		String createTableBookings = "CREATE TABLE IF NOT EXISTS airbnb.bookings ("
+		+ "id INT AUTO_INCREMENT PRIMARY KEY,"
+		+ "listing_id INT NOT NULL,"
+		+ "renter_id INT NOT NULL,"
+		+ "start_date Date NOT NULL,"
+		+ "finish_date Date NOT NULL,"
+		+ "pricing INT NOT NULL DEFAULT 0,"
+		+ "status ENUM('user_cancelled', 'renter_cancelled', 'normal') NOT NULL DEFAULT 'normal',"
+		+ "FOREIGN KEY (listing_id) REFERENCES listing (id),"
+		+ "FOREIGN KEY (renter_id) REFERENCES user (id)"
+		+ ");";
+
+		try {
+			this.stmt.executeUpdate(createTableBookings);
+			System.out.println("Table bookings created successfully.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
 
 	/** */
 	public ResultSet executeQuery(String query) {
