@@ -27,7 +27,6 @@ public class Controller {
             sc = new Scanner(System.in);
         if (db == null)
             db = new sqlFunctions();
-        db.initiate_tables_and_db() ;
         db.connect();
         return true;
     }
@@ -102,16 +101,15 @@ public class Controller {
         
         Users user;
         if (userDetails.get(8) == "true") { // Renter Dashboard
-            System.out.println(userDetails);
             List<String> ccdetails = db.getcc(Integer.valueOf(userDetails.get(0)));
             System.out.println(ccdetails);
             	user = new Renter(userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), ccdetails.get(0), ccdetails.get(1), ccdetails.get(2), ccdetails.get(3));
             	System.out.println("\nWelcome " + user.getName());
-            	renterDashboard();
+            	renterDashboard(email);
         } else { // Host dashboard
             	user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
             	System.out.println("\nWelcome " + user.getName());
-            	hostDashboard();
+            	hostDashboard(email);
 		}
     }
 
@@ -123,7 +121,7 @@ public class Controller {
             do {
                 System.out.println("\n Options: \n"+
                                 "        1. Exit \n"+
-                                "        2. sign up as Host\n"+
+                                "        2. Sign up as Host\n"+
                                 "        3. Sign up as renter \n");
                 System.out.print("Select:");
                 val = sc.nextLine();
@@ -373,12 +371,12 @@ public class Controller {
 
 //_________________________ Dashboard __________________________ \\
 
-    private boolean hostDashboard(){
+    private boolean hostDashboard(String email){
         System.out.println("\nWelcome to the Host Dashboard");
         return true;
     }
     
-    private boolean renterDashboard() throws SQLException{
+    private boolean renterDashboard(String email) throws SQLException, InterruptedException{
         System.out.println("\nWelcome to the Renter Dashboard");
         if (sc != null && db != null){
             String val;
@@ -400,19 +398,24 @@ public class Controller {
                         case 1:
                             break;
                         case 2:
-                            renterDashboard();
+                            // makeBooking();
+                            renterDashboard(email);
                             break;
                         case 3:
-                            renterDashboard();
+                            // cancelBooking();
+                            renterDashboard(email);
                             break;
                         case 4:
-                            renterDashboard();
+                            // searchListings();
+                            renterDashboard(email);
                             break;
                         case 5:
-                            renterDashboard();
+                            // rateBookings();
+                            renterDashboard(email);
                             break;
                         case 6:
-                            renterDashboard();
+                            viewProfile(email);
+                            renterDashboard(email);
                             break;
                         case 7:
                             Menu();
@@ -437,8 +440,22 @@ public class Controller {
 
 //______________________ Helper Functions ______________________ \\
 
+    /* View profile Details */
+    private void viewProfile(String email) throws InterruptedException{
 
-    /* Checks if User Exists */
+        List<String> userDetails = db.getUser(email);
+        Thread.sleep(2000);
+        if (userDetails.get(8) == "true") { // Renter Dashboard
+            List<String> ccdetails = db.getcc(Integer.valueOf(userDetails.get(0)));
+            	System.out.println("User details: " + userDetails);
+            	System.out.println("Payment details: " + ccdetails);
+            } else { // Host dashboard
+            	System.out.println("User details: " + userDetails);
+            }
+        Thread.sleep(2000);
+    }
+
+    /* Verify Login */
     private boolean verify_login(String email, String password) throws SQLException {
 		List<String> vals = db.select("user", "password", "email", email);
 		boolean found = vals.size() == 1 && vals.get(0).equals(password);
@@ -447,7 +464,8 @@ public class Controller {
 		}
 		return found;
 	}
-
+    
+    /* Checks if User Exists */
     private boolean checkuser(String table, String col, String value) throws SQLException{
         List<String> vals = db.select(table, col, col, value);
         if (vals.size() == 1) {
