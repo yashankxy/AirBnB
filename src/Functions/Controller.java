@@ -515,16 +515,13 @@ public class Controller {
             System.out.println("Confirm booking? (y/n)");
             String confirm = sc.nextLine();
             if (confirm.equals("y")){
-                // Convert date 
-                SimpleDateFormat originalFormat = new SimpleDateFormat("dd/MM/yyyy");
-
-
-                java.util.Date start =  originalFormat.parse(startdate);
-                Date end =  (Date) originalFormat.parse(enddate);
-// Todo: RICKKKKKYYY 
-
-
-                db.bookListings(Integer.parseInt(lid), this.id, start, end, total, confirm);                
+                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
+                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy/MM/dd");
+                java.util.Date sdate = inputFormat.parse(startdate);
+                java.util.Date edate = inputFormat.parse(enddate);
+                String fstartdate = outputFormat.format(sdate);
+                String fenddate = outputFormat.format(edate);
+                db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");                
             }
             else{
                 System.out.println("Booking cancelled");

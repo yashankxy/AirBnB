@@ -124,15 +124,15 @@ public class sqlFunctions {
 		}
 	}
 
-	public void bookListings(int listingId, int renterId, Date sformattedDate, Date eformattedDate, Double totalPricing, String status) {
+	public void bookListings(int listingId, int renterId, String sformattedDate, String eformattedDate, Double totalPricing, String status) {
 
         String sql = "INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status) VALUES (?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement statement = con.prepareStatement(sql)) {
             statement.setInt(1, listingId);
             statement.setInt(2, renterId);
-            statement.setDate(3, sformattedDate);
-            statement.setDate(4, eformattedDate);
+            statement.setString(3, sformattedDate);
+            statement.setString(4, eformattedDate);
             statement.setDouble(5, totalPricing);
             statement.setString(6, status);
             
