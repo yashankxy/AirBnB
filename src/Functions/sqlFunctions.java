@@ -237,13 +237,44 @@ public class sqlFunctions {
 		}
 	}	
 	
-	public boolean createListing(String host_id, float latitude, float longitude, float pricing,
+	public String createListing(String host_id, float latitude, float longitude, float pricing,
 	String type_of_listing, String postal_code, String city, String country) {
 		try{
 			String query = "INSERT INTO listing (host_id, latitude, longitude, pricing, type_of_listing, postal_code, city, country)"
 							+ "VALUES (%s, %s,%s, %s, '%s', '%s', '%s', '%s')";
 			query = String.format(query,host_id, latitude, longitude, pricing, 
 			type_of_listing, postal_code, city, country);
+			this.stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+			
+			// Get the generated keys (auto-incremented ID)
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                int id = generatedKeys.getInt(1);
+                return Integer.toString(id) ;
+            } else {
+                throw new Exception("Failed to get the generated ID.");
+            }
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return "";
+		}
+	}
+
+	public Boolean addAmenities(String listingId, List<String> listOfAmenities) {
+		try{
+			String query = "INSERT INTO listing_amenities (listing_id, wifi, washer, air_conditioning," +
+							"dedicated_workspace, hair_dryer, kitchen, dryer, heating, tv, iron)"
+							+ "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)";
+			query = String.format(query,listingId, listOfAmenities.get(0),
+								listOfAmenities.get(1),
+								listOfAmenities.get(2),
+								listOfAmenities.get(3),
+								listOfAmenities.get(4),
+								listOfAmenities.get(5),
+								listOfAmenities.get(6),
+								listOfAmenities.get(7),
+								listOfAmenities.get(8),
+								listOfAmenities.get(9));
 			this.stmt.execute(query);
 			return true;
 		}catch(Exception e){

@@ -109,6 +109,7 @@ INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_D
 -- Query for 3 days from today
 INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY));
 
+INSERT INTO airbnb.availability (listing_id, date) VALUES (1, "2023-12-24");
 -------------------------------------------------------
 -------------     Create bookings        --------------
 -------------------------------------------------------

@@ -10,6 +10,8 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Collections;
+import java.util.ArrayList;
 
 import Users.Host;
 import Users.Renter;
@@ -525,7 +527,7 @@ public class Controller {
 
         // Loop until valid postal code input is provided or user inputs "exit"
         do {
-            System.out.print("Postal Code (type 'exit' to cancel): ");
+            System.out.print("Postal Code: ");
             postal_code = sc.nextLine().trim();
             if (postal_code.equalsIgnoreCase("exit")) {
                 return; // Return if the user inputs "exit"
@@ -602,12 +604,57 @@ public class Controller {
                  !type_of_listing.equals("apartment") &&
                  !type_of_listing.equals("room")); // Continue asking if invalid type_of_listing
 
-        // Inserting into database
-        Boolean res = db.createListing(host_id, latitude, longitude, pricing, 
+        // Assign the amenities
+        List<String> listOfAmenities = new ArrayList<>(Collections.nCopies(10, "0"));
+
+        System.out.println("Select amenities for this listing:\n"
+                + " 1. wifi\n" + " 2. washer\n" + " 3. air_conditioning\n"
+                + " 4. dedicated_workspace\n" + " 5. hair_dryer\n"
+                + " 6. kitchen\n" + " 7. dryer\n" + " 8. heating\n"
+                + " 9. tv\n" + " 10. iron\n");
+        System.out.println("Input example: '1,2,7'");
+        String input = "";
+        do {
+            System.out.print("Enter your selection: ");
+            input = sc.nextLine().trim();
+            if (!input.isEmpty()) {
+                // Split the input string into individual amenity choices
+                String[] selectedAmenities = input.split(",");
+
+                // Update the list of amenities accordingly
+                for (String choice : selectedAmenities) {
+                    try {
+                        int amenityChoice = Integer.parseInt(choice.trim());
+                        if (amenityChoice >= 1 && amenityChoice <= 10) {
+                            // Update the corresponding amenity in the list
+                            listOfAmenities.set(amenityChoice - 1, "1");
+                        } else {
+                            System.out.println("Invalid amenity choice: " + choice);
+                            input = "";
+                            listOfAmenities = new ArrayList<>(Collections.nCopies(10, "0"));
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid input format: \n" + choice);
+                        input = "";
+                        listOfAmenities = new ArrayList<>(Collections.nCopies(10, "0"));
+                    }
+                }
+            }
+            else{
+                input = "done";
+            }
+
+        } while (input.isEmpty());
+
+        // Inserting into listing
+        String listingId = db.createListing(host_id, latitude, longitude, pricing, 
                     type_of_listing, postal_code, city, country);
-        if (res){
-            System.out.println("\n New Listing added! :)\n");
+        if (listingId == ""){
+            System.out.println("Failed to generate id \n");
+            return;
         }
+        // Inserting into amenities
+        db.addAmenities(listingId, listOfAmenities);
     }
 
 //______________________ Helper Functions ______________________ \\
