@@ -468,7 +468,7 @@ public class Controller {
                             renterDashboard(email);
                             break;
                         case 3:
-                            // cancelBooking();
+                            cancelBooking(true);
                             renterDashboard(email);
                             break;
                         case 4:
@@ -733,9 +733,9 @@ public class Controller {
 
 
 
-    
-//_________________________ Bookings _________________________ \\
 
+//_________________________ Bookings _________________________ \\
+    // Todo: Update availability after adding a booking
     private void makeBooking() throws SQLException, ParseException {
         String lid;
 		do {
@@ -823,9 +823,26 @@ public class Controller {
 		
     }
 
-    private void cancelBooking() {
+    private void cancelBooking(boolean isRenter) throws SQLException {
+        String booking_id;
+       
+        do {
+            System.out.print("Enter booking number to cancel: ");
+            booking_id = sc.nextLine().trim();
+            if (!db.verifybooking(booking_id, this.id)){
+                System.out.println("Invalid booking number");
+            }
+        } while (!db.verifybooking(booking_id, this.id));
+
+        // Delete Booking
+        // Update Availability
+        
+
+        System.out.println("Your Booking was Cancelled !");
 
     }
+
+
 
     private void rateBookings() {
 
@@ -834,6 +851,11 @@ public class Controller {
 
 
 //______________________ Helper Functions ______________________ \\
+
+
+    
+
+
 
     /* Verify Availability of listing */
     private boolean verifyavailability(String startdate, String enddate, String lid) {

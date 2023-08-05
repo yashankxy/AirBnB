@@ -213,6 +213,17 @@ public class sqlFunctions {
         return result;
     }
 
+	public boolean verifybooking(String booking_id, int id2) throws SQLException {
+        try (
+            PreparedStatement stm = con.prepareStatement("SELECT id FROM bookings WHERE id = ? AND renter_id = ?")) {
+            stm.setString(1, booking_id);
+            stm.setInt(2, id2);
+            try (ResultSet rs = stm.executeQuery()) {
+                return rs.next(); // If there is a match, rs.next() will return true; otherwise, it will return false.
+            }
+        }
+    }
+
 	public List<String> getAvailableDates(int listingId) {
         List<String> availableDates = new ArrayList<>();
         String sql = "SELECT date FROM availability WHERE listing_id = ?";
