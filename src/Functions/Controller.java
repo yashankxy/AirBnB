@@ -420,6 +420,7 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 6:
+                            viewProfile(email);
                             hostDashboard(email);
                             break;
                         case 7:
