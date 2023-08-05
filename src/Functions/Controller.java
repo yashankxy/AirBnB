@@ -670,19 +670,19 @@ public class Controller {
             // assign dates
             do{
                 System.out.print("Enter start date (yyyy-MM-dd): ");
-                startDateStr = sc.nextLine().trim().toLowerCase();
+                startDateStr = sc.nextLine().trim();
                 System.out.print("Enter end date (yyyy-MM-dd): ");
-                endDateStr = sc.nextLine().trim().toLowerCase();
+                endDateStr = sc.nextLine().trim();
                 try {
                     if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                        Date startDate = (Date) dateFormat.parse(startDateStr);
-                        Date endDate = (Date) dateFormat.parse(endDateStr);
-                        if (startDate.before(endDate)) {
-                            Date currentDate = startDate;
-                            while (!currentDate.after(endDate)) {
+                        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                        LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                        if (startDate.isBefore(endDate)) {
+                            LocalDate currentDate = startDate;
+                            while (!currentDate.isAfter(endDate)) {
                                 calendar_availability.add(dateFormat.format(currentDate));
-                                currentDate = addDays(currentDate, 1);
+                                currentDate = currentDate.plusDays(1);
                             }
                             added_date = true;
                         } else {
@@ -690,8 +690,8 @@ public class Controller {
                         }
                     }
 
-                } catch (ParseException e) {
-                    System.out.println("Error: Wrong Input.");;
+                } catch (Exception e) {
+                    System.out.println("Error: Wrong Input." + e);;
                 }
 
             } while(!added_date);

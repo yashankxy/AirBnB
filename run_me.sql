@@ -1,6 +1,4 @@
--------------------------------------------------------
------------------Create User Table---------------------
--------------------------------------------------------
+
 DROP DATABASE IF EXISTS airbnb;
 Create DATABASE airbnb;
 USE airbnb;
@@ -18,14 +16,16 @@ CREATE TABLE user (
     `dob` VARCHAR(10),
     `renter` BOOLEAN
 );
--- insert renter --
+
 INSERT INTO user (`name`, `email`, `password`, `address`, `occupation`, `sin`, `dob`, `renter`)
 VALUES ('Alice Smith', 'alice@example.com', 'password123', '456 Oak St', 'Graphic Designer', '987654321', '1985-05-15', true);
 
--- insert host --
+
 INSERT INTO user (`name`, `email`, `password`, `address`, `occupation`, `sin`, `dob`, `renter`)
 VALUES ('Bob Johnson', 'bob@example.com', 'securepass', '789 Elm Ave', 'Sales Manager', '654321987', '1992-08-20', false);
 
+INSERT INTO user (`name`, `email`, `password`, `address`, `occupation`, `sin`, `dob`, `renter`)
+VALUES ('1', '1', '1', '1', '1', '1', '1', false);
 
 CREATE TABLE cc (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -37,7 +37,7 @@ CREATE TABLE cc (
     FOREIGN KEY (uid) REFERENCES user(id) ON DELETE CASCADE
 );
 
--- insert cc to renter --
+
 INSERT INTO cc (cc_num, cc_name, cc_exp, cc_cvv, uid)
 VALUES ('9876543298765432', 'Alice Smith', '08/25', '123', 1);
 
@@ -54,7 +54,7 @@ CREATE TABLE listing(
     listed BOOLEAN NOT NULL DEFAULT 1,
     FOREIGN KEY (host_id) REFERENCES user (id) ON DELETE CASCADE
 );
--- insert new listing for user with id 1--
+
 INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
 VALUES (2, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States');
 
@@ -85,16 +85,15 @@ CREATE TABLE availability (
     PRIMARY KEY (listing_id, date),
     FOREIGN KEY (listing_id) REFERENCES listing (id) ON DELETE CASCADE
 );
--- Query for today
+
 INSERT INTO availability (listing_id, date) VALUES (1, CURRENT_DATE());
 
--- Query for tomorrow
+
 INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 1 DAY));
 
--- Query for the day after tomorrow
 INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY));
 
--- Query for 3 days from today
+
 INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY));
 
 INSERT INTO availability (listing_id, date) VALUES (1, "2023-12-24");
