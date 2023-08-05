@@ -110,7 +110,6 @@ public class sqlFunctions {
 		}
 	}
 	
-
 	/** Create a Table for credit card */
 	public boolean link_cc(String cc_num, String cc_name, String cc_exp, String cc_cvv, int uid) throws SQLException{ 
 		try{
@@ -124,29 +123,49 @@ public class sqlFunctions {
 		}
 	}
 
-	public void bookListings(int listingId, int renterId, String sformattedDate, String eformattedDate, Double totalPricing, String status) {
+	public int bookListings(int listingId, int renterId, String sformattedDate, String eformattedDate, Double totalPricing, String status) {
+		String sql = "INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status) VALUES (?, ?, ?, ?, ?, ?)";
+		
+		int generatedId = -1; // Initialize to a default value in case the insert fails
+		
+		try (PreparedStatement statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+			statement.setInt(1, listingId);
+			statement.setInt(2, renterId);
+			statement.setString(3, sformattedDate);
+			statement.setString(4, eformattedDate);
+			statement.setDouble(5, totalPricing);
+			statement.setString(6, status);
+			
+			int rowsAffected = statement.executeUpdate();
+			if (rowsAffected > 0) {
+				// Retrieve the auto-generated ID of the inserted booking
+				ResultSet generatedKeys = statement.getGeneratedKeys();
+				if (generatedKeys.next()) {
+					generatedId = generatedKeys.getInt(1);
+				}
+				System.out.println("Booking confirmed. ID: " + generatedId);
+			} else {
+				System.out.println("Booking failed, try again");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("An error occurred while booking the listing.");
+		}
+		
+		return generatedId;
+	}
+	
 
-        String sql = "INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status) VALUES (?, ?, ?, ?, ?, ?)";
-        
-        try (PreparedStatement statement = con.prepareStatement(sql)) {
-            statement.setInt(1, listingId);
-            statement.setInt(2, renterId);
-            statement.setString(3, sformattedDate);
-            statement.setString(4, eformattedDate);
-            statement.setDouble(5, totalPricing);
-            statement.setString(6, status);
-            
-            int rowsAffected = statement.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("Booking confirmed");
-            } else {
-                System.out.println("Booking failed, try again");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("An error occurred while booking the listing.");
-        }
-    }
+	public void insertAvailability(String table, int listing_id, String date){
+		try{
+			String query = "INSERT INTO `%s` (listing_id, date) VALUES ('%s', '%s')";
+			query = String.format(query, table, listing_id, date);
+			this.stmt.execute(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		}
+	}
+
 // ------------------------------ SELECT FUNCTIONS ------------------------------ //
 
 
@@ -274,25 +293,34 @@ public class sqlFunctions {
 			return null;
 		}
 	}
-
-	public boolean listings(int userID ){ // Add Listing details, create a class if required for listings
-		return true;
+	
+	/*	Delete booking */
+	public void deletebookings(String bookings, String booking_id) {
+		try{
+			String query = "DELETE FROM %s WHERE id = %s";
+			query = String.format(query, bookings, booking_id);
+			this.stmt.execute(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		}
 	}
 
-	public boolean removeListings(int userID, int ListingId){ // Add other listing details
-		return false; 
-	} 
 
+	public void deleteAvailability(String table, int listing_id, String date) {
+		try {
+			String query = "DELETE FROM `%s` WHERE listing_id = %s AND date = '%s'";
+			query = String.format(query, table, listing_id, date);
+			this.stmt.execute(query);
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+		}
+	}
+	
 	
 
-	public boolean cancelBookings(int userID, int bookingId){ // Add other booking details if required
-            // String query = "DELETE FROM bookings WHERE booking_id = ?";
-            // PreparedStatement stmt = con.prepareStatement(query);
-            // stmt.setInt(1, bookingId);
-            // int rowsAffected = stmt.executeUpdate();
-            // return rowsAffected > 0;
-			return true;
-	} 
+
+
+
 
 	/** Returns the id that corresponds to the given email**/
 	public String getIdFromEmail(String email){
@@ -371,4 +399,6 @@ public class sqlFunctions {
 			return false;
 		}
 	}
+
+	
 }

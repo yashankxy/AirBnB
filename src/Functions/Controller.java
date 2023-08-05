@@ -60,7 +60,7 @@ public class Controller {
                                 "        1. Exit \n"+
                                 "        2. Login\n"+
                                 "        3. Sign-Up\n");
-                System.out.print("Select:");
+                System.out.print("Select: ");
                 val = sc.nextLine();
                 try {
                     choice = Integer.parseInt(val);
@@ -791,7 +791,7 @@ public class Controller {
             timePeriod = (int) ChronoUnit.DAYS.between(enteredStartDate, enteredEndDate);
             
             // Calculate Total Price: timePeriod * price
-            lid_price = Double.parseDouble(db.select("listing", "pricing", "id", lid).get(0));
+            lid_price = Double.parseDouble(db.select("availability", "price", "listing_id", lid).get(0));
             Double total = timePeriod * lid_price;
             // Print Invoice:
             System.out.println("\nInvoice: ");
@@ -809,7 +809,32 @@ public class Controller {
                 java.util.Date edate = inputFormat.parse(enddate);
                 String fstartdate = outputFormat.format(sdate);
                 String fenddate = outputFormat.format(edate);
-                db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");                
+                int bid = db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");       
+                String booking_id = Integer.toString(bid);
+                
+                // Update Availability
+                List<String> sd = db.select("bookings", "start_date", "id", booking_id);
+                List<String> ed = db.select("bookings", "finish_date", "id", booking_id);
+
+                LocalDate startDate = LocalDate.parse(sd.get(0));
+                LocalDate endDate = LocalDate.parse(ed.get(0));
+
+                // Create a list to store all the dates between start_date and finish_date
+                List<String> allDates = new ArrayList<>();
+
+                // Loop from start_date to finish_date and add each date to the list
+                LocalDate currentDate = startDate;
+                while (!currentDate.isAfter(endDate)) {
+                    allDates.add(currentDate.toString());
+                    currentDate = currentDate.plusDays(1);
+                }
+                int x = Integer.parseInt(db.select("bookings", "listing_id", "id", booking_id).get(0));
+                for (String date: allDates){
+                    db.deleteAvailability("availability", x , date);
+                }
+        
+
+
             }
             else{
                 System.out.println("Booking cancelled");
@@ -835,14 +860,37 @@ public class Controller {
             }
         } while (!db.verifybooking(booking_id, this.id));
 
-        // Delete Booking
         // Update Availability
+            List<String> startdate = db.select("bookings", "start_date", "id", booking_id);
+            List<String> enddate = db.select("bookings", "finish_date", "id", booking_id);
 
+            LocalDate startDate = LocalDate.parse(startdate.get(0));
+            LocalDate endDate = LocalDate.parse(enddate.get(0));
+
+            // Create a list to store all the dates between start_date and finish_date
+            List<String> allDates = new ArrayList<>();
+
+            // Loop from start_date to finish_date and add each date to the list
+            LocalDate currentDate = startDate;
+            while (!currentDate.isAfter(endDate)) {
+                allDates.add(currentDate.toString());
+                currentDate = currentDate.plusDays(1);
+            }
+            // System.out.println(allDates);
+        int x = Integer.parseInt(db.select("bookings", "listing_id", "id", booking_id).get(0));
+
+        // Delete Booking
+        db.deletebookings("bookings", booking_id);
+		
+        //Update Availability
+        for (String date: allDates){
+            db.insertAvailability("availability", x, date);
+        }
+        
 
         System.out.println("Your Booking was Cancelled !");
 
     }
-
 
     private void rateBookings() {
 

@@ -114,3 +114,6 @@ CREATE TABLE bookings (
     FOREIGN KEY (listing_id) REFERENCES listing (id),
     FOREIGN KEY (renter_id) REFERENCES user (id)
 );
+
+INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status)
+VALUES (1, 1, '2023-08-06', '2023-08-07', 150.00, 'normal');
