@@ -2,6 +2,8 @@ package Functions;
 
 
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;  
@@ -17,6 +19,11 @@ public class sqlFunctions {
 	public Statement stmt = null;
 
 	
+	
+	
+// ------------------------------ Connection FUNCTIONS ------------------------------ //	
+
+
 	/** Connects **/
 	public boolean connect() {
 		boolean result = true;
@@ -35,7 +42,7 @@ public class sqlFunctions {
 		}
 		return result;
 	}
-	
+
 	/** Disconnect */
 	public void disconnect() {
 		try {
@@ -61,6 +68,9 @@ public class sqlFunctions {
 		}
 		return rs;
 	}
+
+
+// ------------------------------ INSERT FUNCTIONS ------------------------------ //
 
 	/** Create a host */
 	public boolean createuser(String table, String name, String email, String password, String address, String occupation, String sin, String dob ) throws SQLException{ 
@@ -114,6 +124,32 @@ public class sqlFunctions {
 		}
 	}
 
+	public void bookListings(int listingId, int renterId, String sformattedDate, String eformattedDate, Double totalPricing, String status) {
+
+        String sql = "INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status) VALUES (?, ?, ?, ?, ?, ?)";
+        
+        try (PreparedStatement statement = con.prepareStatement(sql)) {
+            statement.setInt(1, listingId);
+            statement.setInt(2, renterId);
+            statement.setString(3, sformattedDate);
+            statement.setString(4, eformattedDate);
+            statement.setDouble(5, totalPricing);
+            statement.setString(6, status);
+            
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Booking confirmed");
+            } else {
+                System.out.println("Booking failed, try again");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("An error occurred while booking the listing.");
+        }
+    }
+// ------------------------------ SELECT FUNCTIONS ------------------------------ //
+
+
 	/* Find User */
 	public List<String> getUser(String email){
 		List<String> info = new ArrayList<String>();
@@ -161,29 +197,7 @@ public class sqlFunctions {
 
 		return info;
 	}
-
-	public ResultSet updateUser(String uid, String name, String email, String pwd, String address, String occup, String sin, String dob){
-		try{
-			String query = "UPDATE user SET name='%s', email='%s', password='%s', address='%s', occupation='%s', sin='%s', dob='%s' WHERE uid = '%s'";
-        	query = String.format(query, name, email, pwd, address, occup, sin, dob, uid);
-			return this.stmt.executeQuery(query);
-		}catch(Exception e){
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			return null;
-		}
-	}
-
-	public ResultSet delUser(String uid){
-		try{
-			String query = "DELETE FROM user WHERE uid = '%s'";
-			query = String.format(query, uid);
-			return this.stmt.executeQuery(query);
-		}catch(Exception e){
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			return null;
-		}
-	}
-
+	
 	public List<String> select(String tableName, String columnToSelect, String columnToMatch, String value) throws SQLException {
         List<String> result = new ArrayList<>();
         try (
@@ -199,6 +213,57 @@ public class sqlFunctions {
         return result;
     }
 
+	public List<String> getAvailableDates(int listingId) {
+        List<String> availableDates = new ArrayList<>();
+        String sql = "SELECT date FROM availability WHERE listing_id = ?";
+        
+        try (PreparedStatement statement = con.prepareStatement(sql)) {
+            statement.setInt(1, listingId);
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String date = resultSet.getString("date");
+                    availableDates.add(date);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("An error occurred while fetching available dates.");
+        }
+        
+        return availableDates;
+    }
+
+
+// ------------------------------ UPDATE FUNCTIONS ------------------------------ //
+
+
+	public ResultSet updateUser(String uid, String name, String email, String pwd, String address, String occup, String sin, String dob){
+		try{
+			String query = "UPDATE user SET name='%s', email='%s', password='%s', address='%s', occupation='%s', sin='%s', dob='%s' WHERE uid = '%s'";
+        	query = String.format(query, name, email, pwd, address, occup, sin, dob, uid);
+			return this.stmt.executeQuery(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return null;
+		}
+	}
+
+
+// ------------------------------ DELETE FUNCTIONS ------------------------------ //
+
+
+	public ResultSet delUser(String uid){
+		try{
+			String query = "DELETE FROM user WHERE uid = '%s'";
+			query = String.format(query, uid);
+			return this.stmt.executeQuery(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return null;
+		}
+	}
+
 	public boolean listings(int userID ){ // Add Listing details, create a class if required for listings
 		return true;
 	}
@@ -207,9 +272,7 @@ public class sqlFunctions {
 		return false; 
 	} 
 
-	public boolean bookListings(int userID, int ListingId){ // Add other listing details
-		return false; 
-	} 
+	
 
 	public boolean cancelBookings(int userID, int bookingId){ // Add other booking details if required
             // String query = "DELETE FROM bookings WHERE booking_id = ?";

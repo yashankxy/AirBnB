@@ -2,6 +2,7 @@ package Functions;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,6 +10,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -24,6 +27,9 @@ import Users.Users;
 public class Controller {
     Scanner sc = null;
     sqlFunctions db = null;
+
+    private Users user;
+    private int id;
 
 //______________________ Basic Operation ______________________ \\
 
@@ -48,7 +54,8 @@ public class Controller {
 
     
     /** Opens up Menu */
-    public void Menu() throws SQLException, InterruptedException {
+
+    public void Menu() throws SQLException, InterruptedException, ParseException {
         if (sc != null && db != null) {
             String val;
             int choice;
@@ -93,7 +100,8 @@ public class Controller {
     
     /* Logs in User */
     // TODO Get user info and store in memory
-    public void login() throws SQLException, InterruptedException {
+
+    public void login() throws SQLException, InterruptedException, ParseException {
         String email, password;
     
         do {
@@ -105,22 +113,21 @@ public class Controller {
         } while (!verify_login(email, password));
         List<String> userDetails = db.getUser(email);
         
-        Users user;
         if (userDetails.get(8) == "true") { // Renter Dashboard
-            List<String> ccdetails = db.getcc(Integer.valueOf(userDetails.get(0)));
-            System.out.println(ccdetails);
-            	user = new Renter(userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), ccdetails.get(0), ccdetails.get(1), ccdetails.get(2), ccdetails.get(3));
-            	System.out.println("\nWelcome " + user.getName());
-            	renterDashboard(email);
+            id = Integer.valueOf(userDetails.get(0));
+            List<String> ccdetails = db.getcc(id);
+            user = new Renter(userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), ccdetails.get(0), ccdetails.get(1), ccdetails.get(2), ccdetails.get(3));
+            System.out.println("\nWelcome " + user.getName());
+            renterDashboard(email);
         } else { // Host dashboard
-            	user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
-            	System.out.println("\nWelcome " + user.getName());
-            	hostDashboard(email);
+            user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
+            System.out.println("\nWelcome " + user.getName());
+            hostDashboard(email);
 		}
     }
 
     /** Sign up as a Host or customer account */
-    public void signup() throws SQLException{
+    public void signup() throws SQLException, InterruptedException, ParseException{
         if (sc != null && db != null){
             String val;
             int choice;
@@ -160,7 +167,7 @@ public class Controller {
     }
 
     /** Create a new customer account*/
-    public void renter() throws SQLException{
+    public void renter() throws SQLException, InterruptedException, ParseException{
         String name, email, password, dob, address, occup;
         String cc_num, cc_name, cc_exp, cc_cvv; 
         String sin = "";
@@ -301,7 +308,7 @@ public class Controller {
     }
 
     /** Create a new host account */
-    public void host() throws SQLException{
+    public void host() throws SQLException, InterruptedException, ParseException{
         String name, email, password, dob, address, occup;
         String sin = "";
         Boolean verify = true;
@@ -439,7 +446,7 @@ public class Controller {
         return true;
     }
     
-    private boolean renterDashboard(String email) throws SQLException, InterruptedException{
+    private boolean renterDashboard(String email) throws SQLException, InterruptedException, ParseException{
         System.out.println("\nWelcome to the Renter Dashboard");
         if (sc != null && db != null){
             String val;
@@ -461,7 +468,7 @@ public class Controller {
                         case 1:
                             break;
                         case 2:
-                            // makeBooking();
+                            makeBooking();
                             renterDashboard(email);
                             break;
                         case 3:
@@ -481,6 +488,9 @@ public class Controller {
                             renterDashboard(email);
                             break;
                         case 7:
+                            System.out.println("\nLogging out...");
+                            Thread.sleep(1000);
+                            user = null;
                             Menu();
                             break;
                         default:
@@ -721,7 +731,139 @@ public class Controller {
         System.out.println("Added New Listing!");
     }
 
+//_________________________ Bookings _________________________ \\
+
+    private void makeBooking() throws SQLException, ParseException {
+        String lid;
+		do {
+			System.out.print("Enter listing number to book: ");
+			lid = sc.nextLine();
+		} while (!verifylisting(lid));
+
+        double lid_price;
+        int timePeriod =0;
+        String[] dates = null;
+        String startdate, enddate;
+        LocalDate enteredStartDate, enteredEndDate; 
+
+        // Date sd;
+        // Date ed;
+
+        do{            // --- Start Date
+            System.out.println("Enter start date (dd/mm/yyyy): ");
+            startdate = sc.nextLine().trim();
+            try{
+                LocalDate tmr = LocalDate.now().plusDays(1);
+                enteredStartDate = LocalDate.parse(startdate, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                
+                if (enteredStartDate.isBefore(tmr)) {
+                    System.out.println("Start date should be after the present date.");
+                }
+                else{ break;}
+            }catch(Exception e){
+                System.out.println("Invalid date format");
+            }
+        }while(true);
+
+        do{            // --- End Date
+            System.out.println("Enter end date (dd/mm/yyyy): ");
+            enddate = sc.nextLine().trim();
+             try{
+                enteredEndDate = LocalDate.parse(enddate, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+                if (enteredEndDate.isBefore(enteredStartDate)) {
+                    System.out.println("End date should be after the start date.");
+                }else{break;}
+            }catch(Exception e){
+                System.out.println("Invalid date format");
+            }
+            // Check other things
+        }while(true);
+
+
+        boolean check  = verifyavailability(startdate, enddate, lid);
+        if (check){
+            // Calculate Number of date: timeperiod = enddate - startdate // timePeriod in days;
+            timePeriod = (int) ChronoUnit.DAYS.between(enteredStartDate, enteredEndDate);
+            
+            // Calculate Total Price: timePeriod * price
+            lid_price = Double.parseDouble(db.select("listing", "pricing", "id", lid).get(0));
+            Double total = timePeriod * lid_price;
+            // Print Invoice:
+            System.out.println("\nInvoice: ");
+            System.out.println("Listing ID: " + lid);
+            System.out.println("Start Date: " + startdate);
+            System.out.println("End Date: " + enddate);
+            System.out.println("Total Days: " + timePeriod);
+            System.out.println("Total Price: " + total);
+            System.out.println("Confirm booking? (y/n)");
+            String confirm = sc.nextLine();
+            if (confirm.equals("y")){
+                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
+                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy/MM/dd");
+                java.util.Date sdate = inputFormat.parse(startdate);
+                java.util.Date edate = inputFormat.parse(enddate);
+                String fstartdate = outputFormat.format(sdate);
+                String fenddate = outputFormat.format(edate);
+                db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");                
+            }
+            else{
+                System.out.println("Booking cancelled");
+            }
+        }
+        else{
+            System.out.println("No availability for the selected dates");
+            // Print all the available dates close by
+            return;
+        }
+
+		
+    }
+
+    private void cancelBooking() {
+
+    }
+
+    private void rateBookings() {
+
+    }
+
+
+
 //______________________ Helper Functions ______________________ \\
+
+    /* Verify Availability of listing */
+    private boolean verifyavailability(String startdate, String enddate, String lid) {
+        List<String> availabledates = db.getAvailableDates(Integer.parseInt(lid));
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        LocalDate startDate = LocalDate.parse(startdate, inputFormatter);
+        LocalDate endDate = LocalDate.parse(enddate, inputFormatter);
+        List<String> unavailableDates = new ArrayList<>();
+        
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            String dateString = date.format(outputFormatter);
+            if (!availabledates.contains(dateString)) {
+                System.out.println("Date not available: " + date.format(inputFormatter));
+                unavailableDates.add(date.format(inputFormatter));
+            }
+        }
+        return unavailableDates.isEmpty();
+    }
+
+
+    /* Verify Listing id */
+    private boolean verifylisting(String lid) throws SQLException {
+        // Todo lid should be INT not string
+        List<String> availableListings = db.select("availability", "listing_id", "listing_id", lid);
+        boolean result = availableListings.size() > 0;
+        
+        if(result) {return true;}
+        
+        System.out.println("Unable to find listing, Try again!");
+        return false;
+    }
 
     /* View profile Details */
     private void viewProfile(String email) throws InterruptedException{
@@ -730,11 +872,11 @@ public class Controller {
         Thread.sleep(2000);
         if (userDetails.get(8) == "true") { // Renter Dashboard
             List<String> ccdetails = db.getcc(Integer.valueOf(userDetails.get(0)));
+            System.out.println("User details: " + userDetails);
+            System.out.println("Payment details: " + ccdetails);
+        } else { // Host dashboard
             	System.out.println("User details: " + userDetails);
-            	System.out.println("Payment details: " + ccdetails);
-            } else { // Host dashboard
-            	System.out.println("User details: " + userDetails);
-            }
+        }
         Thread.sleep(2000);
     }
 
