@@ -297,4 +297,87 @@ public class sqlFunctions {
 			return false;
 		}
 	}
+
+	public ResultSet GetAllActiveListings(String host_id){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM listing WHERE host_id = %s AND listed=1 ORDER BY id";
+			query = String.format(query,host_id);
+			rs = this.stmt.executeQuery(query);
+			return rs;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return rs;
+		}
+	}
+
+	public boolean ListingNotEmpty(String host_id) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM listing WHERE host_id = %s AND listed=1 ORDER BY id";
+			query = String.format(query, host_id);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public boolean ListingIDNotEmpty(String host_id, String listing_id) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM listing WHERE host_id = %s AND listed=1 AND id = %s ORDER BY id";
+			query = String.format(query, host_id, listing_id);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	public ResultSet GetListingAvailability(String listing_id){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM availability WHERE listing_id = %s AND date >= CURRENT_DATE() ORDER BY date";
+			query = String.format(query,listing_id);
+			rs = this.stmt.executeQuery(query);
+			return rs;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return rs;
+		}
+	}
 }

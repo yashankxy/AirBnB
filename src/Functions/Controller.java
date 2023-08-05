@@ -9,6 +9,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -387,9 +389,9 @@ public class Controller {
                 System.out.println("\n Options: \n"+
                                 "        1. Exit \n"+
                                 "        2. Add Listing\n"+
-                                "        3. Cancel Booking\n"+
-                                "        4. Search Listings\n"+
-                                "        5. Rate my Bookings\n"+
+                                "        3. My Listings\n"+
+                                "        4. Manage Listings\n"+
+                                "        5. Remove Listing\n"+
                                 "        6. View Profile\n"+
                                 "        7. Logout \n");
                 System.out.print("Select: ");
@@ -405,11 +407,13 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 3:
-                            // cancelBooking();
+                            // Show listings 
+                            HDshowListing(host_id);
                             hostDashboard(email);
                             break;
                         case 4:
-                            // searchListings();
+                            // Manage Listings;
+                            HDmanageListings(host_id);
                             hostDashboard(email);
                             break;
                         case 5:
@@ -707,8 +711,8 @@ public class Controller {
             do{
                 System.out.println("Do you want to add more availability days? \n"+
                                 "    1. Yes\n"+ "    2. No");
+                System.out.print("Select: ");
                 answerContinue = sc.nextLine().trim().toLowerCase();
-                System.out.println(answerContinue);
                 if (answerContinue.equals("2")){
                     done = true;
                 }
@@ -721,7 +725,262 @@ public class Controller {
         System.out.println("Added New Listing!");
     }
 
+    private void HDshowListing(String host_id) throws SQLException{
+        ResultSet rs = db.GetAllActiveListings(host_id);
+        System.out.printf("-----------------------------------------------------------" +
+        "-----------------------------------------------------------\n" );
+        System.out.printf("%-4s %-15s %-10s %-10s %-10s %-25s %-20s%n",
+                "ID", "Type of Listing", "Latitude", "Longitude", "Postal Code", "City", "Country");
+
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String typeOfListing = rs.getString("type_of_listing");
+            float latitude = rs.getFloat("latitude");
+            float longitude = rs.getFloat("longitude");
+            String postalCode = rs.getString("postal_code");
+            String city = rs.getString("city");
+            String country = rs.getString("country");
+
+            System.out.printf("%-4d %-15s %-10.4f %-10.4f %-10s %-25s %-20s %n",
+                    id, typeOfListing, latitude, longitude, postalCode, city, country);
+        }
+        System.out.printf("-----------------------------------------------------------" +
+        "-----------------------------------------------------------" );
+    }
+
+    private void HDshowListingAvailability(String listing_id) throws SQLException{
+        ResultSet rs = db.GetListingAvailability(listing_id);
+        System.out.printf("------------------------------------------\n");
+        System.out.printf("%-10s %-15s %-15s %n",
+                "listing_id", "date", "price");
+
+        while (rs.next()) {
+            int id = rs.getInt("listing_id");
+            String date = rs.getString("date");
+            float price = rs.getFloat("price");
+
+            System.out.printf("%-10s %-15s %-15s %n",
+                    id, date, price);
+        }
+        System.out.printf("------------------------------------------");
+    }
+
+    private void HDmanageListings(String host_id) throws SQLException{
+        HDshowListing(host_id);
+        if(!db.ListingNotEmpty(host_id)){
+            System.out.println("No listings present, exiting:");
+            return;
+        }
+        System.out.println("\n Select the ID of the listing for changes:");
+        String selectedID = "";
+        do {
+            System.out.print("Select: ");
+            selectedID = sc.nextLine().trim();
+            try {
+                Integer intID = Integer.parseInt(selectedID);
+            } catch (NumberFormatException e) {
+                System.out.println("Please input a valid value");
+                selectedID = "";
+            }
+            if (!selectedID.isEmpty()){
+                if(!db.ListingIDNotEmpty(host_id, selectedID)){
+                    System.out.println("Please input a valid value");
+                    selectedID = "";
+                }
+            }
+        } while (selectedID.isEmpty());
+
+        String val;
+        int choice;
+        do {
+            System.out.println("\n Operation to perform: \n"+
+                            "        1. Exit \n"+
+                            "        2. Add availability and assign price\n"+
+                            "        3. Change price\\\n"+
+                            "        4. Remove listing availability\n"+
+                            "        5. Remove Listing\n");
+            System.out.print("Select: ");
+            val = sc.nextLine();
+            try {
+                choice = Integer.parseInt(val);
+                switch (choice) { 
+                    case 1:
+                        break;
+                    case 2:
+                        // Add availability and assign price;
+                        HDshowListingAvailability(selectedID);
+                        break;
+                    case 3:
+                        // Change price
+                        break;
+                    case 4:
+                        // Remove listing availability;
+                        break;
+                    case 5:
+                        // Remove Listing;
+                        break;
+                    default:
+                        System.out.println("Invalid option");
+                        break;
+                }
+            } catch (NumberFormatException e) {
+                val = "-1";
+            }
+        } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0);
+        if (val.equals("1")) close();  
+    }
+
+
+//_________________________ Bookings _________________________ \\
+    // Todo: Update availability after adding a booking
+    private void makeBooking() throws SQLException, ParseException {
+        String lid;
+		do {
+			System.out.print("Enter listing number to book: ");
+			lid = sc.nextLine();
+		} while (!verifylisting(lid));
+
+        double lid_price;
+        int timePeriod =0;
+        String[] dates = null;
+        String startdate, enddate;
+        LocalDate enteredStartDate, enteredEndDate; 
+
+        // Date sd;
+        // Date ed;
+
+        do{            // --- Start Date
+            System.out.println("Enter start date (dd/mm/yyyy): ");
+            startdate = sc.nextLine().trim();
+            try{
+                LocalDate tmr = LocalDate.now().plusDays(1);
+                enteredStartDate = LocalDate.parse(startdate, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                
+                if (enteredStartDate.isBefore(tmr)) {
+                    System.out.println("Start date should be after the present date.");
+                }
+                else{ break;}
+            }catch(Exception e){
+                System.out.println("Invalid date format");
+            }
+        }while(true);
+
+        do{            // --- End Date
+            System.out.println("Enter end date (dd/mm/yyyy): ");
+            enddate = sc.nextLine().trim();
+             try{
+                enteredEndDate = LocalDate.parse(enddate, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+                if (enteredEndDate.isBefore(enteredStartDate)) {
+                    System.out.println("End date should be after the start date.");
+                }else{break;}
+            }catch(Exception e){
+                System.out.println("Invalid date format");
+            }
+            // Check other things
+        }while(true);
+
+
+        boolean check  = verifyavailability(startdate, enddate, lid);
+        if (check){
+            // Calculate Number of date: timeperiod = enddate - startdate // timePeriod in days;
+            timePeriod = (int) ChronoUnit.DAYS.between(enteredStartDate, enteredEndDate);
+            
+            // Calculate Total Price: timePeriod * price
+            lid_price = Double.parseDouble(db.select("listing", "pricing", "id", lid).get(0));
+            Double total = timePeriod * lid_price;
+            // Print Invoice:
+            System.out.println("\nInvoice: ");
+            System.out.println("Listing ID: " + lid);
+            System.out.println("Start Date: " + startdate);
+            System.out.println("End Date: " + enddate);
+            System.out.println("Total Days: " + timePeriod);
+            System.out.println("Total Price: " + total);
+            System.out.println("Confirm booking? (y/n)");
+            String confirm = sc.nextLine();
+            if (confirm.equals("y")){
+                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy");
+                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy/MM/dd");
+                java.util.Date sdate = inputFormat.parse(startdate);
+                java.util.Date edate = inputFormat.parse(enddate);
+                String fstartdate = outputFormat.format(sdate);
+                String fenddate = outputFormat.format(edate);
+                db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");                
+            }
+            else{
+                System.out.println("Booking cancelled");
+            }
+        }
+        else{
+            System.out.println("No availability for the selected dates");
+            // Print all the available dates close by
+            return;
+        }
+
+		
+    }
+
+    private void cancelBooking(boolean isRenter) throws SQLException {
+        String booking_id;
+       
+        do {
+            System.out.print("Enter booking number to cancel: ");
+            booking_id = sc.nextLine().trim();
+            if (!db.verifybooking(booking_id, this.id)){
+                System.out.println("Invalid booking number");
+            }
+        } while (!db.verifybooking(booking_id, this.id));
+
+        // Delete Booking
+        // Update Availability
+
+
+        System.out.println("Your Booking was Cancelled !");
+
+    }
+
+
+    private void rateBookings() {
+
+    }
+
+
+
 //______________________ Helper Functions ______________________ \\
+
+
+
+    /* Verify Availability of listing */
+    private boolean verifyavailability(String startdate, String enddate, String lid) {
+        List<String> availabledates = db.getAvailableDates(Integer.parseInt(lid));
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        LocalDate startDate = LocalDate.parse(startdate, inputFormatter);
+        LocalDate endDate = LocalDate.parse(enddate, inputFormatter);
+        List<String> unavailableDates = new ArrayList<>();
+        
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            String dateString = date.format(outputFormatter);
+            if (!availabledates.contains(dateString)) {
+                System.out.println("Date not available: " + date.format(inputFormatter));
+                unavailableDates.add(date.format(inputFormatter));
+            }
+        }
+        return unavailableDates.isEmpty();
+    }
+
+    /* Verify Listing id */
+    private boolean verifylisting(String lid) throws SQLException {
+        // Todo lid should be INT not string
+        List<String> availableListings = db.select("availability", "listing_id", "listing_id", lid);
+        boolean result = availableListings.size() > 0;
+        
+        if(result) {return true;}
+        
+        System.out.println("Unable to find listing, Try again!");
+        return false;
+    }
 
     /* View profile Details */
     private void viewProfile(String email) throws InterruptedException{
@@ -758,7 +1017,7 @@ public class Controller {
         return false;
     }
 
-    private Date addDays(Date date, int days) {
+     private Date addDays(Date date, int days) {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(java.util.Calendar.DAY_OF_YEAR, days);
