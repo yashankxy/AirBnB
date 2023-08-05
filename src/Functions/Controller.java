@@ -16,10 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Collections;
-import java.util.ArrayList;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import Users.Host;
 import Users.Renter;
 import Users.Users;
@@ -384,7 +380,7 @@ public class Controller {
 
 //_________________________ Dashboard __________________________ \\
 
-    private boolean hostDashboard(String email) throws SQLException, InterruptedException{
+    private boolean hostDashboard(String email) throws SQLException, InterruptedException, ParseException{
         System.out.println("\nWelcome to the Renter Dashboard");
         String host_id = db.getIdFromEmail(email);
         if (sc != null && db != null){
@@ -676,8 +672,8 @@ public class Controller {
                 try {
                     if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                        Date startDate = dateFormat.parse(startDateStr);
-                        Date endDate = dateFormat.parse(endDateStr);
+                        Date startDate = (Date) dateFormat.parse(startDateStr);
+                        Date endDate = (Date) dateFormat.parse(endDateStr);
                         if (startDate.before(endDate)) {
                             Date currentDate = startDate;
                             while (!currentDate.after(endDate)) {
@@ -904,6 +900,6 @@ public class Controller {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(java.util.Calendar.DAY_OF_YEAR, days);
-        return calendar.getTime();
+        return (Date) calendar.getTime();
     }
 }
