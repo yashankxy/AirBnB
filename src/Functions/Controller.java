@@ -381,7 +381,7 @@ public class Controller {
 //_________________________ Dashboard __________________________ \\
 
     private boolean hostDashboard(String email) throws SQLException, InterruptedException, ParseException{
-        System.out.println("\nWelcome to the Renter Dashboard");
+        System.out.println("\nWelcome to the Host Dashboard");
         String host_id = db.getIdFromEmail(email);
         if (sc != null && db != null){
             String val;
