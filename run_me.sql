@@ -27,9 +27,6 @@ INSERT INTO user (`name`, `email`, `password`, `address`, `occupation`, `sin`, `
 VALUES ('Bob Johnson', 'bob@example.com', 'securepass', '789 Elm Ave', 'Sales Manager', '654321987', '1992-08-20', false);
 
 
--------------------------------------------------------
------------------Create cc Table---------------------
--------------------------------------------------------
 CREATE TABLE cc (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `cc_num` VARCHAR(20) NOT NULL,
@@ -45,9 +42,6 @@ INSERT INTO cc (cc_num, cc_name, cc_exp, cc_cvv, uid)
 VALUES ('9876543298765432', 'Alice Smith', '08/25', '123', 1);
 
 
--------------------------------------------------------
------------------Create listing------------------------
--------------------------------------------------------
 CREATE TABLE listing(
     id INT AUTO_INCREMENT PRIMARY KEY,
     renter_id INT NOT NULL,
@@ -64,9 +58,6 @@ CREATE TABLE listing(
 INSERT INTO listing (renter_id, type_of_listing, latitude, longitude, postal_code, city, country, pricing)
 VALUES (1, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States', 150);
 
--------------------------------------------------------
------------------Create listing_amenities--------------
--------------------------------------------------------
 CREATE TABLE listing_amenities (
     listing_id INT PRIMARY KEY,
     wifi BOOLEAN NOT NULL DEFAULT 0,
@@ -87,10 +78,6 @@ INSERT INTO listing_amenities (
 ) VALUES (
     1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0
 );
-
--------------------------------------------------------
--------------     Create availability        ----------
--------------------------------------------------------
 CREATE TABLE availability (
     listing_id INT NOT NULL,
     date DATE NOT NULL,
@@ -109,16 +96,13 @@ INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_D
 -- Query for 3 days from today
 INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY));
 
--------------------------------------------------------
--------------     Create bookings        --------------
--------------------------------------------------------
 CREATE TABLE bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     listing_id INT NOT NULL,
     renter_id INT NOT NULL,
     start_date Date NOT NULL,
     finish_date Date NOT NULL,
-    pricing INT NOT NULL DEFAULT 0,
+    pricing DOUBLE NOT NULL DEFAULT 0,
     status ENUM('user_cancelled', 'renter_cancelled', 'normal') 
         NOT NULL DEFAULT 'normal',
     FOREIGN KEY (listing_id) REFERENCES listing (id),
