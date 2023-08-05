@@ -283,7 +283,81 @@ public class sqlFunctions {
 			return true;
 	} 
 
+	/** Returns the id that corresponds to the given email**/
+	public String getIdFromEmail(String email){
+		try{
+			String query = "SELECT id FROM user WHERE email = '%s'";
+			query = String.format(query,email);
+			ResultSet rs = this.stmt.executeQuery(query);
+			if (rs.next()) {
+                // Get the id value from the result set and convert it to string
+                return Integer.toString(rs.getInt("id"));
+            }
+			return "";
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return "";
+		}
+	}	
+	
+	public String createListing(String host_id, float latitude, float longitude,
+	String type_of_listing, String postal_code, String city, String country) {
+		try{
+			String query = "INSERT INTO listing (host_id, latitude, longitude, type_of_listing, postal_code, city, country)"
+							+ "VALUES (%s, %s, %s, '%s', '%s', '%s', '%s')";
+			query = String.format(query,host_id, latitude, longitude, 
+			type_of_listing, postal_code, city, country);
+			this.stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+			
+			// Get the generated keys (auto-incremented ID)
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                int id = generatedKeys.getInt(1);
+                return Integer.toString(id) ;
+            } else {
+                throw new Exception("Failed to get the generated ID.");
+            }
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return "";
+		}
+	}
 
+	public Boolean addAmenities(String listingId, List<String> listOfAmenities) {
+		try{
+			String query = "INSERT INTO listing_amenities (listing_id, wifi, washer, air_conditioning," +
+							"dedicated_workspace, hair_dryer, kitchen, dryer, heating, tv, iron)"
+							+ "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)";
+			query = String.format(query,listingId, listOfAmenities.get(0),
+								listOfAmenities.get(1),
+								listOfAmenities.get(2),
+								listOfAmenities.get(3),
+								listOfAmenities.get(4),
+								listOfAmenities.get(5),
+								listOfAmenities.get(6),
+								listOfAmenities.get(7),
+								listOfAmenities.get(8),
+								listOfAmenities.get(9));
+			this.stmt.execute(query);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
+	}
 
-
+	public Boolean addAvailability(String listingId, List<String> calendar_availability, String price){
+		try{
+			for (String date : calendar_availability){
+				String query = "INSERT INTO availability (listing_id, date, price) VALUES (%s, '%s', %s)"
+							+ "ON DUPLICATE KEY UPDATE price = %s;";
+				query = String.format(query,listingId, date, price, price);
+				this.stmt.execute(query);
+			}
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
+	}
 }

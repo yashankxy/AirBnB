@@ -15,6 +15,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import Users.Host;
 import Users.Renter;
@@ -50,6 +54,7 @@ public class Controller {
 
     
     /** Opens up Menu */
+
     public void Menu() throws SQLException, InterruptedException, ParseException {
         if (sc != null && db != null) {
             String val;
@@ -95,6 +100,7 @@ public class Controller {
     
     /* Logs in User */
     // TODO Get user info and store in memory
+
     public void login() throws SQLException, InterruptedException, ParseException {
         String email, password;
     
@@ -378,8 +384,65 @@ public class Controller {
 
 //_________________________ Dashboard __________________________ \\
 
-    private boolean hostDashboard(String email){
-        System.out.println("\nWelcome to the Host Dashboard");
+    private boolean hostDashboard(String email) throws SQLException, InterruptedException{
+        System.out.println("\nWelcome to the Renter Dashboard");
+        String host_id = db.getIdFromEmail(email);
+        if (sc != null && db != null){
+            String val;
+            int choice;
+            do {
+                System.out.println("\n Options: \n"+
+                                "        1. Exit \n"+
+                                "        2. Add Listing\n"+
+                                "        3. Cancel Booking\n"+
+                                "        4. Search Listings\n"+
+                                "        5. Rate my Bookings\n"+
+                                "        6. View Profile\n"+
+                                "        7. Logout \n");
+                System.out.print("Select: ");
+                val = sc.nextLine();
+                try {
+                    choice = Integer.parseInt(val);
+                    switch (choice) { 
+                        case 1:
+                            break;
+                        case 2:
+                            // Add Listing;
+                            HDashAddListing(host_id);
+                            hostDashboard(email);
+                            break;
+                        case 3:
+                            // cancelBooking();
+                            hostDashboard(email);
+                            break;
+                        case 4:
+                            // searchListings();
+                            hostDashboard(email);
+                            break;
+                        case 5:
+                            // rateBookings();
+                            hostDashboard(email);
+                            break;
+                        case 6:
+                            hostDashboard(email);
+                            break;
+                        case 7:
+                            Menu();
+                            break;
+                        default:
+                            System.out.println("Invalid option");
+                            break;
+                    }
+                } catch (NumberFormatException e) {
+                    val = "-1";
+                }
+            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0 && val.compareTo("6") != 0 && val.compareTo("7") != 0);
+            if (val.equals("1")) close();    
+            
+        }else {
+            System.out.println("\nConnection Failed");
+        }
+
         return true;
     }
     
@@ -445,6 +508,227 @@ public class Controller {
         }
 
         return true;
+    }
+
+    /** New Listing */
+    private void HDashAddListing(String host_id) throws SQLException {
+        float latitude, longitude;
+        String type_of_listing, postal_code, city, country;
+        
+        // Loop until valid city input is provided or user inputs "exit"
+        do {
+            System.out.print("City: ");
+            city = sc.nextLine().trim();
+            if (city.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            if (city.isEmpty()){
+                System.out.print("Please complete the field \n");
+            }
+        } while (city.isEmpty()); // Continue asking if city is empty
+
+        // Loop until valid country input is provided or user inputs "exit"
+        do {
+            System.out.print("Country: ");
+            country = sc.nextLine().trim();
+            if (country.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            if (country.isEmpty()){
+                System.out.print("Please complete the field \n");
+            }
+        } while (country.isEmpty()); // Continue asking if country is empty
+
+        // Loop until valid postal code input is provided or user inputs "exit"
+        do {
+            System.out.print("Postal Code: ");
+            postal_code = sc.nextLine().trim();
+            if (postal_code.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            if (postal_code.length() > 9){
+                System.out.print("Invalid input: too many characters\n");
+                postal_code = "";
+            }
+            if (postal_code.isEmpty()){
+                System.out.print("Please complete the field \n");
+            }
+        } while (postal_code.isEmpty()); // Continue asking if postal code is empty
+
+        // Loop until valid latitude input is provided or user inputs "exit"
+        do {
+            System.out.print("Latitude: ");
+            String input = sc.nextLine().trim();
+            if (input.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            try {
+                latitude = Float.parseFloat(input);
+            } catch (NumberFormatException e) {
+                latitude = 200; // Set latitude to null if invalid number format
+            }
+            if (latitude > 90 || latitude < -90){
+                System.out.print("Please input a valid value \n");
+            }
+        } while (latitude > 90 || latitude < -90); // Continue asking if latitude is not a valid integer
+
+        // Loop until valid longitude input is provided or user inputs "exit"
+        do {
+            System.out.print("Longitude: ");
+            String input = sc.nextLine().trim();
+            if (input.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            try {
+                longitude = Float.parseFloat(input);
+            } catch (NumberFormatException e) {
+                longitude = 200; // Set longitude to null if invalid number format
+            }
+            if (longitude > 180 || longitude < -180){
+                System.out.print("Please input a valid value \n");
+            }
+        } while (longitude > 180 || longitude < -180); // Continue asking if longitude is not a valid integer
+        
+        // Loop until valid type_of_listing input is provided or user inputs "exit"
+        do {
+            System.out.print("Type of Listing (full house, apartment, room): ");
+            type_of_listing = sc.nextLine().trim().toLowerCase();
+            if (type_of_listing.equalsIgnoreCase("exit")) {
+                return; // Return if the user inputs "exit"
+            }
+            if (!type_of_listing.equals("full house") &&
+                 !type_of_listing.equals("apartment") &&
+                 !type_of_listing.equals("room")){
+                    System.out.print("Please input one of the valid values: full house, apartment or room\n");
+                 }
+        } while (!type_of_listing.equals("full house") &&
+                 !type_of_listing.equals("apartment") &&
+                 !type_of_listing.equals("room")); // Continue asking if invalid type_of_listing
+
+        // Inserting into listing
+        String listingId = db.createListing(host_id, latitude, longitude, 
+                    type_of_listing, postal_code, city, country);
+        if (listingId == ""){
+            System.out.println("Failed to generate id \n");
+            return;
+        }
+
+        // Assign the amenities
+        List<String> listOfAmenities = new ArrayList<>(Collections.nCopies(10, "0"));
+
+        System.out.println("Select amenities for this listing:\n"
+                + " 1. wifi\n" + " 2. washer\n" + " 3. air_conditioning\n"
+                + " 4. dedicated_workspace\n" + " 5. hair_dryer\n"
+                + " 6. kitchen\n" + " 7. dryer\n" + " 8. heating\n"
+                + " 9. tv\n" + " 10. iron\n");
+        System.out.println("Input example: '1,2,7'");
+        String input = "";
+        do {
+            System.out.print("Enter your selection: ");
+            input = sc.nextLine().trim();
+            if (!input.isEmpty()) {
+                // Split the input string into individual amenity choices
+                String[] selectedAmenities = input.split(",");
+
+                // Update the list of amenities accordingly
+                for (String choice : selectedAmenities) {
+                    try {
+                        int amenityChoice = Integer.parseInt(choice.trim());
+                        if (amenityChoice >= 1 && amenityChoice <= 10) {
+                            // Update the corresponding amenity in the list
+                            listOfAmenities.set(amenityChoice - 1, "1");
+                        } else {
+                            System.out.println("Invalid amenity choice: " + choice);
+                            input = "";
+                            listOfAmenities = new ArrayList<>(Collections.nCopies(10, "0"));
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid input format: \n" + choice);
+                        input = "";
+                        listOfAmenities = new ArrayList<>(Collections.nCopies(10, "0"));
+                    }
+                }
+            }
+            else{
+                input = "done";
+            }
+
+        } while (input.isEmpty());
+        
+        // Inserting into amenities
+        db.addAmenities(listingId, listOfAmenities);
+
+        // Assign calendar availability
+        Boolean done = false;
+        do{
+            List<String> calendar_availability = new ArrayList<>();
+            Boolean added_date = false;
+            String startDateStr;
+            String endDateStr;
+            String price = "";
+
+            // assign dates
+            do{
+                System.out.print("Enter start date (yyyy-MM-dd): ");
+                startDateStr = sc.nextLine().trim().toLowerCase();
+                System.out.print("Enter end date (yyyy-MM-dd): ");
+                endDateStr = sc.nextLine().trim().toLowerCase();
+                try {
+                    if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        Date startDate = dateFormat.parse(startDateStr);
+                        Date endDate = dateFormat.parse(endDateStr);
+                        if (startDate.before(endDate)) {
+                            Date currentDate = startDate;
+                            while (!currentDate.after(endDate)) {
+                                calendar_availability.add(dateFormat.format(currentDate));
+                                currentDate = addDays(currentDate, 1);
+                            }
+                            added_date = true;
+                        } else {
+                            System.out.println("Error: Start date must be before the end date.");
+                        }
+                    }
+
+                } catch (ParseException e) {
+                    System.out.println("Error: Wrong Input.");;
+                }
+
+            } while(!added_date);
+            
+            // assign price 
+            float priceF = -1;
+            do{
+                System.out.print("Price: ");
+                price = sc.nextLine().trim().toLowerCase();
+                try {
+                    priceF = Float.parseFloat(price);
+                } catch (NumberFormatException e) {
+                    System.out.print("Please input a valid value \n");
+                    priceF = -1; // Set latitude to null if invalid number format
+                }
+            } while(priceF < 0);
+
+            if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                db.addAvailability(listingId, calendar_availability, price);
+            }
+            System.out.println("Completed");
+            String answerContinue;
+            do{
+                System.out.println("Do you want to add more availability days? \n"+
+                                "    1. Yes\n"+ "    2. No");
+                answerContinue = sc.nextLine().trim().toLowerCase();
+                System.out.println(answerContinue);
+                if (answerContinue.equals("2")){
+                    done = true;
+                }
+                if (!answerContinue.equals("1") && !answerContinue.equals("2")){
+                    System.out.println("Invalid Input");
+                }
+            } while (!answerContinue.equals("1") && !answerContinue.equals("2"));
+        } while(!done);
+
+        System.out.println("Added New Listing!");
     }
 
 //_________________________ Bookings _________________________ \\
@@ -546,7 +830,6 @@ public class Controller {
 
 
 
-
 //______________________ Helper Functions ______________________ \\
 
     /* Verify Availability of listing */
@@ -617,4 +900,10 @@ public class Controller {
         return false;
     }
 
+    private Date addDays(Date date, int days) {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, days);
+        return calendar.getTime();
+    }
 }

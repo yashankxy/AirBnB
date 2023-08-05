@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS user, cc, listing, listing_amenities, bookings, availabilit
 CREATE TABLE user (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(255),
-    `email` VARCHAR(255),
+    `email` VARCHAR(255) UNIQUE,
     `password` VARCHAR(255),
     `address` VARCHAR(255),
     `occupation` VARCHAR(255),
@@ -44,19 +44,19 @@ VALUES ('9876543298765432', 'Alice Smith', '08/25', '123', 1);
 
 CREATE TABLE listing(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    renter_id INT NOT NULL,
+    host_id INT NOT NULL,
     type_of_listing ENUM('full house', 'apartment', 'room') NOT NULL,
-    latitude INT NOT NULL,
-    longitude INT NOT NULL,
+    latitude FLOAT NOT NULL,
+    longitude FLOAT NOT NULL,
     postal_code VARCHAR(10),
     city VARCHAR(100),
     country VARCHAR(100),
-    pricing INT NOT NULL DEFAULT 0,
-    FOREIGN KEY (renter_id) REFERENCES user (id) ON DELETE CASCADE
+    listed BOOLEAN NOT NULL DEFAULT 1,
+    FOREIGN KEY (host_id) REFERENCES user (id) ON DELETE CASCADE
 );
 -- insert new listing for user with id 1--
-INSERT INTO listing (renter_id, type_of_listing, latitude, longitude, postal_code, city, country, pricing)
-VALUES (1, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States', 150);
+INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
+VALUES (2, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States');
 
 CREATE TABLE listing_amenities (
     listing_id INT PRIMARY KEY,
@@ -81,20 +81,25 @@ INSERT INTO listing_amenities (
 CREATE TABLE availability (
     listing_id INT NOT NULL,
     date DATE NOT NULL,
+    price float NOT NULL DEFAULT 0,
     PRIMARY KEY (listing_id, date),
     FOREIGN KEY (listing_id) REFERENCES listing (id) ON DELETE CASCADE
 );
 -- Query for today
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, CURRENT_DATE());
+INSERT INTO availability (listing_id, date) VALUES (1, CURRENT_DATE());
 
 -- Query for tomorrow
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 1 DAY));
+INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 1 DAY));
 
 -- Query for the day after tomorrow
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY));
+INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY));
 
 -- Query for 3 days from today
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY));
+INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY));
+
+INSERT INTO availability (listing_id, date) VALUES (1, "2023-12-24");
+
+INSERT INTO availability (listing_id, date, price) VALUES (1, "2023-12-25", 19.2) ON DUPLICATE KEY UPDATE price = 192;
 
 CREATE TABLE bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -103,6 +108,7 @@ CREATE TABLE bookings (
     start_date Date NOT NULL,
     finish_date Date NOT NULL,
     pricing DOUBLE NOT NULL DEFAULT 0,
+
     status ENUM('user_cancelled', 'renter_cancelled', 'normal') 
         NOT NULL DEFAULT 'normal',
     FOREIGN KEY (listing_id) REFERENCES listing (id),
