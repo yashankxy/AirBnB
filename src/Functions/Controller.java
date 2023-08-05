@@ -506,6 +506,9 @@ public class Controller {
         return true;
     }
 
+
+// _________________________ Listing ___________________________ \\
+
     /** New Listing */
     private void HDashAddListing(String host_id) throws SQLException {
         float latitude, longitude;
@@ -727,6 +730,10 @@ public class Controller {
         System.out.println("Added New Listing!");
     }
 
+
+
+
+    
 //_________________________ Bookings _________________________ \\
 
     private void makeBooking() throws SQLException, ParseException {
