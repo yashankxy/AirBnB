@@ -237,12 +237,12 @@ public class sqlFunctions {
 		}
 	}	
 	
-	public String createListing(String host_id, float latitude, float longitude, float pricing,
+	public String createListing(String host_id, float latitude, float longitude,
 	String type_of_listing, String postal_code, String city, String country) {
 		try{
-			String query = "INSERT INTO listing (host_id, latitude, longitude, pricing, type_of_listing, postal_code, city, country)"
-							+ "VALUES (%s, %s,%s, %s, '%s', '%s', '%s', '%s')";
-			query = String.format(query,host_id, latitude, longitude, pricing, 
+			String query = "INSERT INTO listing (host_id, latitude, longitude, type_of_listing, postal_code, city, country)"
+							+ "VALUES (%s, %s, %s, '%s', '%s', '%s', '%s')";
+			query = String.format(query,host_id, latitude, longitude, 
 			type_of_listing, postal_code, city, country);
 			this.stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 			
@@ -283,5 +283,18 @@ public class sqlFunctions {
 		}
 	}
 
-
+	public Boolean addAvailability(String listingId, List<String> calendar_availability, String price){
+		try{
+			for (String date : calendar_availability){
+				String query = "INSERT INTO availability (listing_id, date, price) VALUES (%s, '%s', %s)"
+							+ "ON DUPLICATE KEY UPDATE price = %s;";
+				query = String.format(query,listingId, date, price, price);
+				this.stmt.execute(query);
+			}
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
+	}
 }

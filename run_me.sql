@@ -57,12 +57,11 @@ CREATE TABLE listing(
     postal_code VARCHAR(10),
     city VARCHAR(100),
     country VARCHAR(100),
-    pricing FLOAT NOT NULL DEFAULT 0,
     FOREIGN KEY (host_id) REFERENCES user (id) ON DELETE CASCADE
 );
 -- insert new listing for user with id 1--
-INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country, pricing)
-VALUES (2, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States', 150);
+INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
+VALUES (2, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States');
 
 -------------------------------------------------------
 -----------------Create listing_amenities--------------
@@ -94,22 +93,25 @@ INSERT INTO listing_amenities (
 CREATE TABLE availability (
     listing_id INT NOT NULL,
     date DATE NOT NULL,
+    price float NOT NULL DEFAULT 0,
     PRIMARY KEY (listing_id, date),
     FOREIGN KEY (listing_id) REFERENCES listing (id) ON DELETE CASCADE
 );
 -- Query for today
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, CURRENT_DATE());
+INSERT INTO availability (listing_id, date) VALUES (1, CURRENT_DATE());
 
 -- Query for tomorrow
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 1 DAY));
+INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 1 DAY));
 
 -- Query for the day after tomorrow
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY));
+INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY));
 
 -- Query for 3 days from today
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY));
+INSERT INTO availability (listing_id, date) VALUES (1, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY));
 
-INSERT INTO airbnb.availability (listing_id, date) VALUES (1, "2023-12-24");
+INSERT INTO availability (listing_id, date) VALUES (1, "2023-12-24");
+
+INSERT INTO availability (listing_id, date, price) VALUES (1, "2023-12-25", 19.2) ON DUPLICATE KEY UPDATE price = 192;
 -------------------------------------------------------
 -------------     Create bookings        --------------
 -------------------------------------------------------

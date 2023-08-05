@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -12,6 +14,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import Users.Host;
 import Users.Renter;
@@ -497,8 +501,8 @@ public class Controller {
     }
 
     /** New Listing */
-    public void HDashAddListing(String host_id) throws SQLException {
-        float latitude, longitude, pricing;
+    private void HDashAddListing(String host_id) throws SQLException {
+        float latitude, longitude;
         String type_of_listing, postal_code, city, country;
         
         // Loop until valid city input is provided or user inputs "exit"
@@ -531,6 +535,10 @@ public class Controller {
             postal_code = sc.nextLine().trim();
             if (postal_code.equalsIgnoreCase("exit")) {
                 return; // Return if the user inputs "exit"
+            }
+            if (postal_code.length() > 9){
+                System.out.print("Invalid input: too many characters\n");
+                postal_code = "";
             }
             if (postal_code.isEmpty()){
                 System.out.print("Please complete the field \n");
@@ -570,24 +578,7 @@ public class Controller {
                 System.out.print("Please input a valid value \n");
             }
         } while (longitude > 180 || longitude < -180); // Continue asking if longitude is not a valid integer
-
-        // Loop until valid pricing input is provided or user inputs "exit"
-        do {
-            System.out.print("Pricing: ");
-            String input = sc.nextLine().trim();
-            if (input.equalsIgnoreCase("exit")) {
-                return; // Return if the user inputs "exit"
-            }
-            try {
-                pricing = Float.parseFloat(input);
-            } catch (NumberFormatException e) {
-                pricing = -1; // Set pricing to null if invalid number format
-            }
-            if (pricing < 0){
-                System.out.print("Please input a valid value \n");
-            }
-        } while (pricing < 0); // Continue asking if pricing is not a valid integer
-
+        
         // Loop until valid type_of_listing input is provided or user inputs "exit"
         do {
             System.out.print("Type of Listing (full house, apartment, room): ");
@@ -603,6 +594,14 @@ public class Controller {
         } while (!type_of_listing.equals("full house") &&
                  !type_of_listing.equals("apartment") &&
                  !type_of_listing.equals("room")); // Continue asking if invalid type_of_listing
+
+        // Inserting into listing
+        String listingId = db.createListing(host_id, latitude, longitude, 
+                    type_of_listing, postal_code, city, country);
+        if (listingId == ""){
+            System.out.println("Failed to generate id \n");
+            return;
+        }
 
         // Assign the amenities
         List<String> listOfAmenities = new ArrayList<>(Collections.nCopies(10, "0"));
@@ -645,16 +644,81 @@ public class Controller {
             }
 
         } while (input.isEmpty());
-
-        // Inserting into listing
-        String listingId = db.createListing(host_id, latitude, longitude, pricing, 
-                    type_of_listing, postal_code, city, country);
-        if (listingId == ""){
-            System.out.println("Failed to generate id \n");
-            return;
-        }
+        
         // Inserting into amenities
         db.addAmenities(listingId, listOfAmenities);
+
+        // Assign calendar availability
+        Boolean done = false;
+        do{
+            List<String> calendar_availability = new ArrayList<>();
+            Boolean added_date = false;
+            String startDateStr;
+            String endDateStr;
+            String price = "";
+
+            // assign dates
+            do{
+                System.out.print("Enter start date (yyyy-MM-dd): ");
+                startDateStr = sc.nextLine().trim().toLowerCase();
+                System.out.print("Enter end date (yyyy-MM-dd): ");
+                endDateStr = sc.nextLine().trim().toLowerCase();
+                try {
+                    if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        Date startDate = dateFormat.parse(startDateStr);
+                        Date endDate = dateFormat.parse(endDateStr);
+                        if (startDate.before(endDate)) {
+                            Date currentDate = startDate;
+                            while (!currentDate.after(endDate)) {
+                                calendar_availability.add(dateFormat.format(currentDate));
+                                currentDate = addDays(currentDate, 1);
+                            }
+                            added_date = true;
+                        } else {
+                            System.out.println("Error: Start date must be before the end date.");
+                        }
+                    }
+
+                } catch (ParseException e) {
+                    System.out.println("Error: Wrong Input.");;
+                }
+
+            } while(!added_date);
+            
+            // assign price 
+            float priceF = -1;
+            do{
+                System.out.print("Price: ");
+                price = sc.nextLine().trim().toLowerCase();
+                try {
+                    priceF = Float.parseFloat(price);
+                } catch (NumberFormatException e) {
+                    System.out.print("Please input a valid value \n");
+                    priceF = -1; // Set latitude to null if invalid number format
+                }
+            } while(priceF < 0);
+
+            if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                db.addAvailability(listingId, calendar_availability, price);
+            }
+            System.out.println("Completed");
+            String answerContinue;
+            do{
+                System.out.println("Do you want to add more availability days? \n"+
+                                "    1. Yes\n"+ "    2. No");
+                answerContinue = sc.nextLine().trim().toLowerCase();
+                System.out.println(answerContinue);
+                if (answerContinue.equals("2")){
+                    done = true;
+                }
+                if (!answerContinue.equals("1") && !answerContinue.equals("2")){
+                    System.out.println("Invalid Input");
+                }
+            } while (!answerContinue.equals("1") && !answerContinue.equals("2"));
+        } while(!done);
+
+        System.out.println("Added New Listing!");
     }
 
 //______________________ Helper Functions ______________________ \\
@@ -694,4 +758,10 @@ public class Controller {
         return false;
     }
 
+    private Date addDays(Date date, int days) {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, days);
+        return calendar.getTime();
+    }
 }
