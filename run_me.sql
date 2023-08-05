@@ -57,6 +57,7 @@ CREATE TABLE listing(
     postal_code VARCHAR(10),
     city VARCHAR(100),
     country VARCHAR(100),
+    listed BOOLEAN NOT NULL DEFAULT 1,
     FOREIGN KEY (host_id) REFERENCES user (id) ON DELETE CASCADE
 );
 -- insert new listing for user with id 1--
