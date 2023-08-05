@@ -408,7 +408,7 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 3:
-                            // cancelBooking();
+                            cancelBooking(false);
                             hostDashboard(email);
                             break;
                         case 4:
@@ -836,12 +836,11 @@ public class Controller {
 
         // Delete Booking
         // Update Availability
-        
+
 
         System.out.println("Your Booking was Cancelled !");
 
     }
-
 
 
     private void rateBookings() {
