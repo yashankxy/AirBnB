@@ -1246,6 +1246,7 @@ public class Controller {
         
 		List<String> col = new ArrayList<String>();
 		List<String> col_val = new ArrayList<String>();
+        
 		
 
         /**Case 1: Type of Listing
@@ -1398,11 +1399,11 @@ public class Controller {
         if(temp.equals("y")){
                 System.out.println("\nFilter DATES\n");
                 do{            // --- Start Date
-                    System.out.println("Enter start date (dd/mm/yyyy): ");
+                    System.out.println("Enter start date (yyyy/mm/dd): ");
                     dates[0] = sc.nextLine().trim();
                     try{
                         LocalDate tmr = LocalDate.now().plusDays(1);
-                        enteredStartDate = LocalDate.parse(dates[0], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                        enteredStartDate = LocalDate.parse(dates[0], DateTimeFormatter.ofPattern("yyyy/MM/dd"));
                         
                         if (enteredStartDate.isBefore(tmr)) {
                             System.out.println("Start date should be after the present date.");
@@ -1413,10 +1414,10 @@ public class Controller {
                     }
                 }while(true);
                 do{            // --- End Date
-                System.out.println("Enter end date (dd/mm/yyyy): ");
+                System.out.println("Enter end date (yyyy/mm/dd): ");
                 dates[1] = sc.nextLine().trim();
                 try{
-                    LocalDate enteredEndDate = LocalDate.parse(dates[1], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    LocalDate enteredEndDate = LocalDate.parse(dates[1], DateTimeFormatter.ofPattern("yyyy/MM/dd"));
     
                     if (enteredEndDate.isBefore(enteredStartDate)) {
                         System.out.println("End date should be after the start date.");
@@ -1443,7 +1444,6 @@ public class Controller {
         
         if(temp.equals("y")){
             System.out.println("\nFilter AMENITIES\n");
-            // Todo: add all amenities
             /*
                 wifi BOOLEAN NOT NULL DEFAULT 0,
                 washer BOOLEAN NOT NULL DEFAULT 0,
@@ -1587,7 +1587,26 @@ public class Controller {
                 }
             } while(!amenities[9].equalsIgnoreCase("y") && !amenities[9].equalsIgnoreCase("n"));
         }
+        
         // SQL Queries
+        // Get all the listings with following amenities and availability dates
+
+        List<String> amenities_y = new ArrayList<>();
+
+        // Extract names with "yes" and add them to the new list
+        for (int i = 0; i < col.size(); i++) {
+            if (col_val.get(i).equalsIgnoreCase("y")) {
+                amenities_y.add(col.get(i));
+            }
+        }
+        List<Integer> filtered_lid = db.findListingsWithAvailability(dates[0], dates[1], amenities_y);
+        System.out.println("Listings with availability and amenities: " + filtered_lid);
+        
+        // double lat = 0;
+        // double lon = 0;
+        // double distance = 0;
+
+
 
 
         
@@ -1747,14 +1766,11 @@ public class Controller {
             }
             // System.out.println(allDates);
         int x = Integer.parseInt(db.select("bookings", "listing_id", "id", booking_id).get(0));
+        
+        // Todo: instead deleting change the status
         // Delete Booking
         db.deletebookings("bookings", booking_id);
 		
-        //Update Availability
-        for (String date: allDates){
-            db.insertAvailability("availability", x, date);
-        }
-        
         System.out.println("Your Booking was Cancelled !");
     }
 

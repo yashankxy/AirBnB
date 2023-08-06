@@ -299,6 +299,48 @@ public class sqlFunctions {
         return sb.toString();
     }
 
+	public List<Integer> findListingsWithAvailability(String startDate, String endDate, List<String> amenities) {
+        List<Integer> listingIds = new ArrayList<>();
+
+            String availabilityQuery = "SELECT listing_id FROM availability WHERE date >= '%s' AND date <= '%s'";
+			availabilityQuery = String.format(availabilityQuery, startDate, endDate);
+			System.out.println(availabilityQuery);
+            try (PreparedStatement stmt = con.prepareStatement(availabilityQuery)) {
+                ResultSet availabilityResult = stmt.executeQuery();
+                while (availabilityResult.next()) {
+                    int listingId = availabilityResult.getInt("listing_id");
+                    if (hasAllAmenities(listingId, amenities)) {
+                        listingIds.add(listingId);
+                    }
+                }
+            }catch(Exception e){
+				System.out.println("Unable to extract information");
+			}
+
+        return listingIds;
+    }
+
+	private boolean hasAllAmenities(int listingId, List<String> amenities) throws SQLException {
+        // Check if the listing with the given ID has all the desired amenities
+        String amenitiesQuery = "SELECT * FROM listing_amenities WHERE listing_id = ?";
+        try (PreparedStatement stmt = con.prepareStatement(amenitiesQuery)) {
+            stmt.setInt(1, listingId);
+            ResultSet amenitiesResult = stmt.executeQuery();
+            if (amenitiesResult.next()) {
+				System.out.println("amenities: " + amenities);
+                for (String amenity : amenities) {
+                    boolean hasAmenity = amenitiesResult.getBoolean(amenity);
+					System.out.println("hasAmenity: " + hasAmenity);
+                    if (!hasAmenity) {
+                        return false; // The listing is missing at least one desired amenity
+                    }
+                }
+                return true; // All amenities are present
+            }
+        }
+        return false; // Listing not found
+    }
+
 // ------------------------------ UPDATE FUNCTIONS ------------------------------ //
 
 
