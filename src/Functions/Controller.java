@@ -1624,6 +1624,9 @@ public class Controller {
 
         boolean check  = verifyavailability(startdate, enddate, lid);
         if (check){
+
+            // Todo: Calculate total price based on each day
+
             // Calculate Number of date: timeperiod = enddate - startdate // timePeriod in days;
             timePeriod = (int) ChronoUnit.DAYS.between(enteredStartDate, enteredEndDate);
             
@@ -1646,7 +1649,27 @@ public class Controller {
                 java.util.Date edate = inputFormat.parse(enddate);
                 String fstartdate = outputFormat.format(sdate);
                 String fenddate = outputFormat.format(edate);
-                db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");                
+                int bid = db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");       
+                String booking_id = Integer.toString(bid);
+                
+                // Update Availability
+                List<String> sd = db.select("bookings", "start_date", "id", booking_id);
+                List<String> ed = db.select("bookings", "finish_date", "id", booking_id);
+                LocalDate startDate = LocalDate.parse(sd.get(0));
+                LocalDate endDate = LocalDate.parse(ed.get(0));
+                // Create a list to store all the dates between start_date and finish_date
+                List<String> allDates = new ArrayList<>();
+                // Loop from start_date to finish_date and add each date to the list
+                LocalDate currentDate = startDate;
+                while (!currentDate.isAfter(endDate)) {
+                    allDates.add(currentDate.toString());
+                    currentDate = currentDate.plusDays(1);
+                }
+                int x = Integer.parseInt(db.select("bookings", "listing_id", "id", booking_id).get(0));
+                for (String date: allDates){
+                    db.deleteAvailability("availability", x , date);
+                }
+        
             }
             else{
                 System.out.println("Booking cancelled");
@@ -1671,13 +1694,30 @@ public class Controller {
                 System.out.println("Invalid booking number");
             }
         } while (!db.verifybooking(booking_id, this.id));
-
-        // Delete Booking
         // Update Availability
-
-
+            List<String> startdate = db.select("bookings", "start_date", "id", booking_id);
+            List<String> enddate = db.select("bookings", "finish_date", "id", booking_id);
+            LocalDate startDate = LocalDate.parse(startdate.get(0));
+            LocalDate endDate = LocalDate.parse(enddate.get(0));
+            // Create a list to store all the dates between start_date and finish_date
+            List<String> allDates = new ArrayList<>();
+            // Loop from start_date to finish_date and add each date to the list
+            LocalDate currentDate = startDate;
+            while (!currentDate.isAfter(endDate)) {
+                allDates.add(currentDate.toString());
+                currentDate = currentDate.plusDays(1);
+            }
+            // System.out.println(allDates);
+        int x = Integer.parseInt(db.select("bookings", "listing_id", "id", booking_id).get(0));
+        // Delete Booking
+        db.deletebookings("bookings", booking_id);
+		
+        //Update Availability
+        for (String date: allDates){
+            db.insertAvailability("availability", x, date);
+        }
+        
         System.out.println("Your Booking was Cancelled !");
-
     }
 
 
