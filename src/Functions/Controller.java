@@ -398,8 +398,10 @@ public class Controller {
                                 "        3. My Listings\n"+
                                 "        4. Manage Listings\n"+
                                 "        5. Cancel Bookings\n"+
-                                "        6. View Profile\n"+
-                                "        7. Logout \n");
+                                "        6. Host Toolkit\n"+
+                                "        7. View Profile\n"+
+                                "        8. Delete Profile\n"+
+                                "        9. Logout \n");
                 System.out.print("Select: ");
                 val = sc.nextLine();
                 try {
@@ -428,10 +430,17 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 6:
-                            viewProfileHost(email);
-                            renterDashboard(email);
+                            hostToolkitReport();
+                            hostDashboard(email);
                             break;
                         case 7:
+                            viewProfileHost(email);
+                            hostDashboard(email);
+                            break;
+                        case 8:
+                            hostDashboard(email);
+                            break;
+                        case 9:
                             Menu();
                             break;
                         default:
@@ -441,7 +450,12 @@ public class Controller {
                 } catch (NumberFormatException e) {
                     val = "-1";
                 }
-            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0 && val.compareTo("6") != 0 && val.compareTo("7") != 0);
+            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 
+            && val.compareTo("3)") != 0 && val.compareTo("4") != 0 
+            && val.compareTo("5") != 0 && val.compareTo("6") != 0 
+            && val.compareTo("7") != 0 && val.compareTo("8") != 0 
+            && val.compareTo("9") != 0 );
+            
             if (val.equals("1")) close();    
             
         }else {
@@ -1760,14 +1774,17 @@ public class Controller {
 
 
     private void rateBookings() {
-
     }
 
 
 
 //______________________ Helper Functions ______________________ \\
 
-
+    private void hostToolkitReport(){
+        db.calculate_avg_price_per_city_and_type();
+        db.calculate_amenities_per_city_and_type();
+        return;
+    }
 
     /* Verify Availability of listing */
     private boolean verifyavailability(String startdate, String enddate, String lid) {
