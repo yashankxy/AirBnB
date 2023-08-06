@@ -919,7 +919,69 @@ public class Controller {
        HDshowListingAvailability(listing_id);
    }
 
-   
+    private void HDdeleteAvailability(String listing_id) throws SQLException{
+       Boolean done = false;
+        do{
+            List<String> calendar_availability = new ArrayList<>();
+            Boolean added_date = false;
+            String startDateStr;
+            String endDateStr;
+            String price = "";
+
+            // assign dates
+            do{
+                System.out.print("Enter start date (yyyy-MM-dd): ");
+                startDateStr = sc.nextLine().trim();
+                System.out.print("Enter end date (yyyy-MM-dd): ");
+                endDateStr = sc.nextLine().trim();
+                try {
+                    if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                        LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                        if (startDate.isBefore(endDate)) {
+                            LocalDate currentDate = startDate;
+                            while (!currentDate.isAfter(endDate)) {
+                                calendar_availability.add(dateFormat.format(currentDate));
+                                currentDate = currentDate.plusDays(1);
+                            }
+                            added_date = true;
+                        } else {
+                            System.out.println("Error: Start date must be before the end date.");
+                        }
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error: Wrong Input." + e);;
+                }
+
+            } while(!added_date);
+            
+
+            if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                db.deleteAvailability(listing_id, startDateStr, endDateStr);
+            }
+            System.out.println("Completed");
+            String answerContinue;
+            do{
+                System.out.println("Do you want to delete more available dates? \n"+
+                                "    1. Yes\n"+ "    2. No");
+                System.out.print("Select: ");
+                answerContinue = sc.nextLine().trim().toLowerCase();
+                if (answerContinue.equals("2")){
+                    done = true;
+                }
+                if (!answerContinue.equals("1") && !answerContinue.equals("2")){
+                    System.out.println("Invalid Input");
+                }
+            } while (!answerContinue.equals("1") && !answerContinue.equals("2"));
+        } while(!done);
+
+       System.out.println("Completed!");
+       HDshowListingAvailability(listing_id);
+   }
+
+
     private void HDmanageListings(String host_id) throws SQLException{
         HDshowListing(host_id);
         if(!db.ListingNotEmpty(host_id)){
@@ -972,7 +1034,9 @@ public class Controller {
                         HDchangeListingPricing(selectedID);
                         break;
                     case 4:
-                        // Remove listing availability;
+                        // Delete available dates
+                        HDshowListingAvailability(selectedID);
+                        HDdeleteAvailability(selectedID);
                         break;
                     case 5:
                         // Remove Listing;

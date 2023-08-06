@@ -521,4 +521,18 @@ public class sqlFunctions {
 			return false;
 		}
 	}
+
+	public boolean deleteAvailability(String listingId, String startDate,  String endDate){
+		try{
+			String query = "DELETE FROM availability "
+							+ " WHERE listing_id = %s AND date BETWEEN '%s' AND '%s';";
+			query = String.format(query,  listingId, startDate, endDate);
+			Integer num_rows = this.stmt.executeUpdate(query);
+			System.out.println("Number of entries deleted: " + num_rows);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
 }
