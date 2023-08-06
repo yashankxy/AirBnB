@@ -473,6 +473,7 @@ public class Controller {
                         case 1:
                             break;
                         case 2:
+                            HDshowListinALL();
                             makeBooking();
                             renterDashboard(email);
                             break;
@@ -741,6 +742,29 @@ public class Controller {
 
     private void HDshowListing(String host_id) throws SQLException{
         ResultSet rs = db.GetAllActiveListings(host_id);
+        System.out.printf("-----------------------------------------------------------" +
+        "-----------------------------------------------------------\n" );
+        System.out.printf("%-4s %-15s %-10s %-10s %-10s %-25s %-20s%n",
+                "ID", "Type of Listing", "Latitude", "Longitude", "Postal Code", "City", "Country");
+
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String typeOfListing = rs.getString("type_of_listing");
+            float latitude = rs.getFloat("latitude");
+            float longitude = rs.getFloat("longitude");
+            String postalCode = rs.getString("postal_code");
+            String city = rs.getString("city");
+            String country = rs.getString("country");
+
+            System.out.printf("%-4d %-15s %-10.4f %-10.4f %-10s %-25s %-20s %n",
+                    id, typeOfListing, latitude, longitude, postalCode, city, country);
+        }
+        System.out.printf("-----------------------------------------------------------" +
+        "-----------------------------------------------------------" );
+    }
+
+    private void HDshowListinALL() throws SQLException{
+        ResultSet rs = db.GetEveryActiveListings();
         System.out.printf("-----------------------------------------------------------" +
         "-----------------------------------------------------------\n" );
         System.out.printf("%-4s %-15s %-10s %-10s %-10s %-25s %-20s%n",

@@ -413,6 +413,19 @@ public class sqlFunctions {
 		}
 	}
 
+	public ResultSet GetEveryActiveListings(){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM listing listed=1 ORDER BY id";
+			query = String.format(query);
+			rs = this.stmt.executeQuery(query);
+			return rs;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return rs;
+		}
+	}
+
 	public boolean ListingNotEmpty(String host_id) {
 		ResultSet rs = null;
 		try {
