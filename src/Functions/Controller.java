@@ -390,7 +390,7 @@ public class Controller {
                                 "        2. Add Listing\n"+
                                 "        3. My Listings\n"+
                                 "        4. Manage Listings\n"+
-                                "        5. Remove Listing\n"+
+                                "        5. idk\n"+
                                 "        6. View Profile\n"+
                                 "        7. Logout \n");
                 System.out.print("Select: ");
@@ -981,6 +981,29 @@ public class Controller {
        HDshowListingAvailability(listing_id);
    }
 
+    private void HDremoveListing(String listing_id) throws SQLException{
+        String answer = "";
+        System.out.println("This action will unlist your listing and cancel all pending bookings: ");
+        System.out.println("   1. Exit\n" + "   2. Confirm");
+            do{
+                System.out.print("Select: ");
+                answer = sc.nextLine().trim();
+
+                if (answer.equals("1")){
+                    return;
+                }
+                else if (answer.equals("2")){
+                    db.UnlistListing(listing_id);
+                    System.out.println("Completed!");
+                }
+                else{
+                    System.out.println("Invalid Input");
+                    answer = "";
+                }
+               
+            } while (answer.isEmpty());
+
+   }
 
     private void HDmanageListings(String host_id) throws SQLException{
         HDshowListing(host_id);
@@ -1040,6 +1063,8 @@ public class Controller {
                         break;
                     case 5:
                         // Remove Listing;
+                        HDshowListingAvailability(selectedID);
+                        HDremoveListing(selectedID);
                         break;
                     default:
                         System.out.println("Invalid option");

@@ -385,7 +385,7 @@ public class sqlFunctions {
 			for (String date : calendar_availability){
 				String query = "INSERT INTO availability (listing_id, date, price) VALUES (%s, '%s', %s)"
 							+ "ON DUPLICATE KEY UPDATE price = %s;";
-				if(InBooking(listingId, date)){
+				if(InBookingNormal(listingId, date)){
 					System.out.println(date + " already booked.");
 				}
 				else{
@@ -541,10 +541,11 @@ public class sqlFunctions {
 		}
 	}
 
-	public boolean InBooking(String listing_id, String date) {
+	public boolean InBookingNormal(String listing_id, String date) {
 		ResultSet rs = null;
 		try {
-			String query = "SELECT * FROM bookings WHERE listing_id = %s AND '%s' BETWEEN start_date AND finish_date";
+			String query = "SELECT * FROM bookings WHERE listing_id = %s AND status = 'normal'" 
+						+ " AND '%s' BETWEEN start_date AND finish_date";
 			query = String.format(query,listing_id, date);
 			rs = this.stmt.executeQuery(query);
 			
@@ -567,6 +568,31 @@ public class sqlFunctions {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	public boolean UnlistListing(String listing_id){
+		try{
+			String queryListing = "UPDATE listing SET listed = 0 "
+							+ " WHERE id = %s;";
+			queryListing = String.format(queryListing, listing_id);
+			this.stmt.executeUpdate(queryListing);
+
+			String queryAvailability = "DELETE FROM availability"
+							+ " WHERE listing_id = %s;";
+			queryAvailability = String.format(queryAvailability, listing_id);
+			Integer numAvail = this.stmt.executeUpdate(queryAvailability);
+			
+			String queryBookings = "UPDATE bookings SET status = 'renter_cancelled' "
+							+ " WHERE listing_id = %s AND finish_date > CURRENT_DATE();";
+			queryBookings = String.format(queryBookings, listing_id);
+			Integer numCancelled = this.stmt.executeUpdate(queryBookings);
+
+			System.out.println("Number of bookings cancelled: " + numCancelled);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
 		}
 	}
 }
