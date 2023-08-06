@@ -155,7 +155,6 @@ public class sqlFunctions {
 		return generatedId;
 	}
 	
-
 	public void insertAvailability(String table, int listing_id, String date){
 		try{
 			String query = "INSERT INTO `%s` (listing_id, date) VALUES ('%s', '%s')";
@@ -868,6 +867,17 @@ public class sqlFunctions {
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 			return;
+		}
+	}
+
+	public void setUserBlock(String user_id){
+		try{
+			String queryBookings = "UPDATE user SET blocked = 1 "
+							+ " WHERE id = %s;";
+			queryBookings = String.format(queryBookings, user_id);
+			this.stmt.executeUpdate(queryBookings);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
 		}
 	}
 

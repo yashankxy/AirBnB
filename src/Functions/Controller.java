@@ -430,17 +430,22 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 6:
+                            // Host Toolkit
                             hostToolkitReport();
                             hostDashboard(email);
                             break;
                         case 7:
+                            // View Profile
                             viewProfileHost(email);
                             hostDashboard(email);
                             break;
                         case 8:
-                            hostDashboard(email);
+                            // Delete Profile
+                            deleteHost(host_id);
+                            Menu();
                             break;
                         case 9:
+                            // Logout
                             Menu();
                             break;
                         default:
@@ -1776,8 +1781,6 @@ public class Controller {
     private void rateBookings() {
     }
 
-
-
 //______________________ Helper Functions ______________________ \\
 
     private void hostToolkitReport(){
@@ -1848,7 +1851,7 @@ public class Controller {
 
     /* Verify Login */
     private boolean verify_login(String email, String password) throws SQLException {
-		List<String> vals = db.select("user", "password", "email", email);
+		List<String> vals = db.select("user", "password", "blocked = 0 AND email", email);
 		boolean found = vals.size() == 1 && vals.get(0).equals(password);
 		if (!found) { // Check if user exists
             System.out.println("\nInvalid username or password. Please try again.");
@@ -1871,5 +1874,36 @@ public class Controller {
         calendar.setTime(date);
         calendar.add(java.util.Calendar.DAY_OF_YEAR, days);
         return (Date) calendar.getTime();
+    }
+
+    private void deleteHost(String host_id) throws SQLException{
+        try{
+            ResultSet rs1 = db.GetAllActiveListings(host_id);
+            List<String> list_listing = new ArrayList<>();
+            while (rs1.next()) {
+                String listing_id = rs1.getString("id");
+                list_listing.add(listing_id);
+            }
+            
+            for ( String lID : list_listing){
+                db.UnlistListing(lID);
+            }
+            db.setUserBlock(host_id);
+        } catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+		}
+    }
+
+    private void deleteRenter(String host_id) throws SQLException{
+        try{
+        ResultSet rs1 = db.GetAllActiveListings(host_id);
+        while (rs1.next()) {
+            String listing_id = rs1.getString("id");
+            db.UnlistListing(listing_id);
+        }
+        db.setUserBlock(host_id);
+        } catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+		}
     }
 }

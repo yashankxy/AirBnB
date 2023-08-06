@@ -15,7 +15,8 @@ CREATE TABLE user (
     `occupation` VARCHAR(255),
     `sin` VARCHAR(20),
     `dob` VARCHAR(10),
-    `renter` BOOLEAN
+    `renter` BOOLEAN,
+    `blocked` BOOLEAN NOT NULL DEFAULT 0
 );
 
 CREATE TABLE cc (
