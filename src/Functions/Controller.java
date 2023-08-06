@@ -376,8 +376,6 @@ public class Controller {
 
     }
 
-
-
 //_________________________ Dashboard __________________________ \\
 
     private boolean hostDashboard(String email) throws SQLException, InterruptedException, ParseException{

@@ -316,11 +316,6 @@ public class sqlFunctions {
 		}
 	}
 	
-	
-
-
-
-
 
 	/** Returns the id that corresponds to the given email**/
 	public String getIdFromEmail(String email){

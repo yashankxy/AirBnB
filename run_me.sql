@@ -20,16 +20,11 @@ CREATE TABLE user (
 INSERT INTO user (`name`, `email`, `password`, `address`, `occupation`, `sin`, `dob`, `renter`)
 VALUES ('Alice Smith', 'alice@example.com', 'password123', '456 Oak St', 'Graphic Designer', '987654321', '1985-05-15', true);
 
-
-
 INSERT INTO user (`name`, `email`, `password`, `address`, `occupation`, `sin`, `dob`, `renter`)
 VALUES ('Bob Johnson', 'bob@example.com', 'securepass', '789 Elm Ave', 'Sales Manager', '654321987', '1992-08-20', false);
 
 INSERT INTO user (`name`, `email`, `password`, `address`, `occupation`, `sin`, `dob`, `renter`)
 VALUES ('1', '1', '1', '1', '1', '1', '1', false);
-
-INSERT INTO user (`name`, `email`, `password`, `address`, `occupation`, `sin`, `dob`, `renter`)
-VALUES ('Bob Johnson', '1', '1', '1', '1', '1', '1992-08-20', false);
 
 
 CREATE TABLE cc (
@@ -41,8 +36,6 @@ CREATE TABLE cc (
     uid INT,
     FOREIGN KEY (uid) REFERENCES user(id) ON DELETE CASCADE
 );
-
-
 
 INSERT INTO cc (cc_num, cc_name, cc_exp, cc_cvv, uid)
 VALUES ('9876543298765432', 'Alice Smith', '08/25', '123', 1);
@@ -59,7 +52,22 @@ CREATE TABLE listing(
     listed BOOLEAN NOT NULL DEFAULT 1,
     FOREIGN KEY (host_id) REFERENCES user (id) ON DELETE CASCADE
 );
--- insert new listing for user with id 1--
+INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
+VALUES (1, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States');
+INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
+VALUES (3, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States');
+
+INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
+VALUES (3, 'room', 40.7128, -74.0060, '10001', 'New York City', 'United States');
+
+INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
+VALUES (3, 'room', 34.0522, -118.2437, '90001', 'Los Angeles', 'United States');
+
+INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
+VALUES (3, 'apartment', 41.8781, -87.6298, '60601', 'Chicago', 'United States');
+
+INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
+VALUES (3, 'apartment', 25.7617, -80.1918, '33101', 'Miami', 'United States');
 INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
 VALUES (3, 'apartment', 47.6062, -122.3321, '98101', 'Seattle', 'United States');
 
@@ -95,7 +103,6 @@ CREATE TABLE availability (
 );
 -- Query for today
 INSERT INTO availability (listing_id, date) VALUES (1, CURRENT_DATE());
-
 
 INSERT INTO availability (listing_id, date) VALUES (2, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY));
 
