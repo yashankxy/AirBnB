@@ -1153,6 +1153,64 @@ public class Controller {
         System.out.println("Completed!");
     }
 
+    private void searchListings() throws SQLException, InterruptedException, ParseException {
+        if (sc != null && db != null){
+            String val;
+            int choice;
+            do {
+                System.out.println("\n Options: \n"+
+                                "        1. Exit \n"+
+                                "        2. Type of Listing\n"+
+                                "        3. Latitude Longitude\n"+
+                                "        4. Postal code\n"+
+                                "        5. City\n"+
+                                "        6. Price\n"+
+                                "        7. Logout \n");
+                System.out.print("Select: ");
+                val = sc.nextLine();
+                try {
+                    choice = Integer.parseInt(val);
+                    switch (choice) { 
+                        case 1:
+                            close();
+                            break;
+                        case 2:
+                            search(val);
+                            break;
+                        case 3:
+                            search(val);
+                            break;
+                        case 4:
+                            search(val);
+                            break;
+                        case 5:
+                            search(val);
+                            break;
+                        case 6:
+                            search(val);
+                            break;
+                        case 7:
+                            System.out.println("\nLogging out...");
+                            Thread.sleep(1000);
+                            user = null;
+                            Menu();
+                            break;
+                        default:
+                            System.out.println("Invalid option");
+                            break;
+                    }
+                } catch (NumberFormatException e) {
+                    val = "-1";
+                }
+            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0 && val.compareTo("6") != 0 && val.compareTo("7") != 0);
+            if (val.equals("1")) close();    
+
+        }else {
+            System.out.println("\nConnection Failed");
+        }
+    }
+    
+    // Todo: Add sql queries
     private void search(String search) {
 		String[] val;
 		String[] dates = new String[2];
@@ -1511,8 +1569,11 @@ public class Controller {
         
 
 	}
+    
+    
+    
     //_________________________ Bookings _________________________ \\
-    // Todo: Update availability after adding a booking
+   
     private void makeBooking() throws SQLException, ParseException {
         String lid;
 		do {
