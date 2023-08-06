@@ -428,8 +428,8 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 6:
-                            viewProfile(email);
-                            hostDashboard(email);
+                            viewProfileHost(email);
+                            renterDashboard(email);
                             break;
                         case 7:
                             Menu();
@@ -1569,9 +1569,6 @@ public class Controller {
         
 
 	}
-    
-    
-    
     //_________________________ Bookings _________________________ \\
    
     private void makeBooking() throws SQLException, ParseException {
@@ -1732,6 +1729,19 @@ public class Controller {
             List<String> ccdetails = db.getcc(Integer.valueOf(userDetails.get(0)));
             System.out.println("User details: " + userDetails);
             System.out.println("Payment details: " + ccdetails);
+        } else { // Host dashboard
+            	System.out.println("User details: " + userDetails);
+        }
+        Thread.sleep(2000);
+    }
+
+    /* View profile Details */
+    private void viewProfileHost(String email) throws InterruptedException{
+
+        List<String> userDetails = db.getUser(email);
+        Thread.sleep(2000);
+        if (userDetails.get(8) == "true") { // Host Dashboard
+            System.out.println("User details: " + userDetails);
         } else { // Host dashboard
             	System.out.println("User details: " + userDetails);
         }
