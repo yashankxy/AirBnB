@@ -802,7 +802,7 @@ public class Controller {
                     id, typeOfListing, latitude, longitude, postalCode, city, country);
         }
         System.out.printf("-----------------------------------------------------------" +
-        "-----------------------------------------------------------" );
+        "-----------------------------------------------------------\n" );
     }
 
     private void HDbookingsAvailable(String list_id) throws SQLException{
