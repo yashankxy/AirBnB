@@ -768,8 +768,82 @@ public class Controller {
             System.out.printf("%-10s %-15s %-15s %n",
                     id, date, price);
         }
-        System.out.printf("------------------------------------------");
+        System.out.printf("------------------------------------------\n");
     }
+
+    private void HDaddListingAvailability(String listing_id) throws SQLException{
+       Boolean done = false;
+        do{
+            List<String> calendar_availability = new ArrayList<>();
+            Boolean added_date = false;
+            String startDateStr;
+            String endDateStr;
+            String price = "";
+
+            // assign dates
+            do{
+                System.out.print("Enter start date (yyyy-MM-dd): ");
+                startDateStr = sc.nextLine().trim();
+                System.out.print("Enter end date (yyyy-MM-dd): ");
+                endDateStr = sc.nextLine().trim();
+                try {
+                    if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                        LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                        if (startDate.isBefore(endDate)) {
+                            LocalDate currentDate = startDate;
+                            while (!currentDate.isAfter(endDate)) {
+                                calendar_availability.add(dateFormat.format(currentDate));
+                                currentDate = currentDate.plusDays(1);
+                            }
+                            added_date = true;
+                        } else {
+                            System.out.println("Error: Start date must be before the end date.");
+                        }
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error: Wrong Input." + e);;
+                }
+
+            } while(!added_date);
+            
+            // assign price 
+            float priceF = -1;
+            do{
+                System.out.print("Price: ");
+                price = sc.nextLine().trim().toLowerCase();
+                try {
+                    priceF = Float.parseFloat(price);
+                } catch (NumberFormatException e) {
+                    System.out.print("Please input a valid value \n");
+                    priceF = -1; // Set latitude to null if invalid number format
+                }
+            } while(priceF < 0);
+
+            if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                db.addAvailability(listing_id, calendar_availability, price);
+            }
+            System.out.println("Completed");
+            String answerContinue;
+            do{
+                System.out.println("Do you want to add more availability days? \n"+
+                                "    1. Yes\n"+ "    2. No");
+                System.out.print("Select: ");
+                answerContinue = sc.nextLine().trim().toLowerCase();
+                if (answerContinue.equals("2")){
+                    done = true;
+                }
+                if (!answerContinue.equals("1") && !answerContinue.equals("2")){
+                    System.out.println("Invalid Input");
+                }
+            } while (!answerContinue.equals("1") && !answerContinue.equals("2"));
+        } while(!done);
+
+       System.out.println("Added!");
+       HDshowListingAvailability(listing_id);
+   }
 
     private void HDmanageListings(String host_id) throws SQLException{
         HDshowListing(host_id);
@@ -802,7 +876,7 @@ public class Controller {
             System.out.println("\n Operation to perform: \n"+
                             "        1. Exit \n"+
                             "        2. Add availability and assign price\n"+
-                            "        3. Change price\\\n"+
+                            "        3. Change price\n"+
                             "        4. Remove listing availability\n"+
                             "        5. Remove Listing\n");
             System.out.print("Select: ");
@@ -815,6 +889,7 @@ public class Controller {
                     case 2:
                         // Add availability and assign price;
                         HDshowListingAvailability(selectedID);
+                        HDaddListingAvailability(selectedID);
                         break;
                     case 3:
                         // Change price
@@ -835,7 +910,6 @@ public class Controller {
         } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0);
         if (val.equals("1")) close();  
     }
-
 
 //_________________________ Bookings _________________________ \\
     // Todo: Update availability after adding a booking

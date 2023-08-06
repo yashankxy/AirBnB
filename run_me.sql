@@ -1,3 +1,4 @@
+-- Active: 1691178371776@@127.0.0.1@3306@airbnb
 
 DROP DATABASE IF EXISTS airbnb;
 Create DATABASE airbnb;
