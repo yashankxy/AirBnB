@@ -120,7 +120,7 @@ CREATE TABLE bookings (
     finish_date Date NOT NULL,
     pricing DOUBLE NOT NULL DEFAULT 0,
 
-    status ENUM('user_cancelled', 'renter_cancelled', 'normal') 
+    status ENUM('host_cancelled', 'renter_cancelled', 'normal') 
         NOT NULL DEFAULT 'normal',
     FOREIGN KEY (listing_id) REFERENCES listing (id),
     FOREIGN KEY (renter_id) REFERENCES user (id)

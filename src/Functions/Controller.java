@@ -390,7 +390,7 @@ public class Controller {
                                 "        2. Add Listing\n"+
                                 "        3. My Listings\n"+
                                 "        4. Manage Listings\n"+
-                                "        5. idk\n"+
+                                "        5. Cancel Bookings\n"+
                                 "        6. View Profile\n"+
                                 "        7. Logout \n");
                 System.out.print("Select: ");
@@ -417,6 +417,7 @@ public class Controller {
                             break;
                         case 5:
                             // rateBookings();
+                            HDcancelBookings(host_id);
                             hostDashboard(email);
                             break;
                         case 6:
@@ -754,6 +755,24 @@ public class Controller {
         "-----------------------------------------------------------" );
     }
 
+    private void HDbookingsAvailable(String list_id) throws SQLException{
+        ResultSet rs = db.GetlistingBookingsAvailable(list_id);
+        System.out.printf("-------------------------------------------\n" );
+        System.out.printf("%-4s %-15s %-15s %-15s %n",
+                "ID", "Start Date", "End Date", "Pricing");
+
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String start_date = rs.getString("start_date");
+            String finish_date = rs.getString("finish_date");
+            String pricing = rs.getString("pricing");
+
+            System.out.printf("%-4s %-15s %-15s %-15s %n",
+                    id, start_date, finish_date, pricing);
+        }
+        System.out.printf("-------------------------------------------\n" );
+    }
+
     private void HDshowListingAvailability(String listing_id) throws SQLException{
         ResultSet rs = db.GetListingAvailability(listing_id);
         System.out.printf("------------------------------------------\n");
@@ -1077,6 +1096,55 @@ public class Controller {
         if (val.equals("1")) close();  
     }
 
+    private void HDcancelBookings(String host_id) throws SQLException{
+        HDshowListing(host_id);
+        if(!db.ListingNotEmpty(host_id)){
+            System.out.println("No listings present, exiting:");
+            return;
+        }
+        System.out.println("\n Select the ID of the listing for booking changes:");
+        String selectedID = "";
+        do {
+            System.out.print("Select: ");
+            selectedID = sc.nextLine().trim();
+            try {
+                Integer intID = Integer.parseInt(selectedID);
+            } catch (NumberFormatException e) {
+                System.out.println("Please input a valid value");
+                selectedID = "";
+            }
+            if (!selectedID.isEmpty()){
+                if(!db.ListingIDNotEmpty(host_id, selectedID)){
+                    System.out.println("Please input a valid value");
+                    selectedID = "";
+                }
+            }
+        } while (selectedID.isEmpty());
+
+        HDbookingsAvailable(selectedID); 
+
+        System.out.print("Select the id of the booking to cancel\n");
+        String bookingID = "";
+        do {
+            System.out.print("Select: ");
+            bookingID = sc.nextLine().trim();
+            try {
+                Integer bID = Integer.parseInt(bookingID);
+            } catch (NumberFormatException e) {
+                System.out.println("Please input a valid value");
+                bookingID = "";
+            }
+            if (!bookingID.isEmpty()){
+                if(!db.BookingsAvailableIsNotEmpty(selectedID, bookingID)){
+                    System.out.println("Please input a valid value");
+                    bookingID = "";
+                }
+            }
+        } while (bookingID.isEmpty());
+
+        db.HostCancelBookingOne(bookingID);
+        System.out.println("Completed!");
+    }
 //_________________________ Bookings _________________________ \\
     // Todo: Update availability after adding a booking
     private void makeBooking() throws SQLException, ParseException {

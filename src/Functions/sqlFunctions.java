@@ -583,12 +583,58 @@ public class sqlFunctions {
 			queryAvailability = String.format(queryAvailability, listing_id);
 			Integer numAvail = this.stmt.executeUpdate(queryAvailability);
 			
-			String queryBookings = "UPDATE bookings SET status = 'renter_cancelled' "
+			String queryBookings = "UPDATE bookings SET status = 'host_cancelled' "
 							+ " WHERE listing_id = %s AND finish_date > CURRENT_DATE();";
 			queryBookings = String.format(queryBookings, listing_id);
 			Integer numCancelled = this.stmt.executeUpdate(queryBookings);
 
 			System.out.println("Number of bookings cancelled: " + numCancelled);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
+
+	public ResultSet GetlistingBookingsAvailable(String listing_id){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM bookings where listing_id = %s AND status = 'normal'";
+			query = String.format(query,listing_id);
+			rs = this.stmt.executeQuery(query);
+			return rs;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return rs;
+		}
+	}
+
+	public boolean BookingsAvailableIsNotEmpty(String listing_id, String booking_id){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM bookings where listing_id = %s AND id = %s";
+			query = String.format(query,listing_id, booking_id);
+			rs = this.stmt.executeQuery(query);
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
+	}
+
+	public boolean HostCancelBookingOne(String booking_id){
+		try{
+
+			String queryBookings = "UPDATE bookings SET status = 'host_cancelled' "
+							+ " WHERE id = %s;";
+			queryBookings = String.format(queryBookings, booking_id);
+			Integer numCancelled = this.stmt.executeUpdate(queryBookings);
 			return true;
 		}catch(Exception e){
 			System.err.println( e.getClass().getName() + ": " + e.getMessage());
