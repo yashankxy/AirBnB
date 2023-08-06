@@ -784,6 +784,7 @@ public class Controller {
 
     private void HDshowListinALL() throws SQLException{
         ResultSet rs = db.GetEveryActiveListings();
+        System.out.println(rs.toString());
         System.out.printf("-----------------------------------------------------------" +
         "-----------------------------------------------------------\n" );
         System.out.printf("%-4s %-15s %-10s %-10s %-10s %-25s %-20s%n",
@@ -1636,7 +1637,7 @@ public class Controller {
     private void makeBooking() throws SQLException, ParseException {
         String lid;
 		do {
-			System.out.print("Enter listing number to book: ");
+			System.out.print("\nEnter listing number to book: ");
 			lid = sc.nextLine();
 		} while (!verifylisting(lid));
 

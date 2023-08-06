@@ -491,7 +491,7 @@ public class sqlFunctions {
 	public ResultSet GetEveryActiveListings(){
 		ResultSet rs = null;
 		try{
-			String query = "SELECT * FROM listing listed=1 ORDER BY id";
+			String query = "SELECT * FROM listing WHERE listed=1 ORDER BY id";
 			query = String.format(query);
 			rs = this.stmt.executeQuery(query);
 			return rs;
