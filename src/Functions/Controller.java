@@ -383,8 +383,6 @@ public class Controller {
 
     }
 
-
-
 //_________________________ Dashboard __________________________ \\
 
     private boolean hostDashboard(String email) throws SQLException, InterruptedException, ParseException{
@@ -397,9 +395,9 @@ public class Controller {
                 System.out.println("\n Options: \n"+
                                 "        1. Exit \n"+
                                 "        2. Add Listing\n"+
-                                "        3. Cancel Booking\n"+
-                                "        4. Search Listings\n"+
-                                "        5. Rate my Bookings\n"+
+                                "        3. My Listings\n"+
+                                "        4. Manage Listings\n"+
+                                "        5. Cancel Bookings\n"+
                                 "        6. View Profile\n"+
                                 "        7. Logout \n");
                 System.out.print("Select: ");
@@ -415,15 +413,18 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 3:
-                            cancelBooking(false);
+                            // Show listings 
+                            HDshowListing(host_id);
                             hostDashboard(email);
                             break;
                         case 4:
-                            // searchListings();
+                            // Manage Listings;
+                            HDmanageListings(host_id);
                             hostDashboard(email);
                             break;
                         case 5:
                             // rateBookings();
+                            HDcancelBookings(host_id);
                             hostDashboard(email);
                             break;
                         case 6:
@@ -724,8 +725,8 @@ public class Controller {
             do{
                 System.out.println("Do you want to add more availability days? \n"+
                                 "    1. Yes\n"+ "    2. No");
+                System.out.print("Select: ");
                 answerContinue = sc.nextLine().trim().toLowerCase();
-                System.out.println(answerContinue);
                 if (answerContinue.equals("2")){
                     done = true;
                 }
@@ -738,469 +739,420 @@ public class Controller {
         System.out.println("Added New Listing!");
     }
 
-    
-    private void searchListings() throws SQLException, InterruptedException, ParseException {
-        if (sc != null && db != null){
-            String val;
-            int choice;
-            do {
-                System.out.println("\n Options: \n"+
-                                "        1. Exit \n"+
-                                "        2. Type of Listing\n"+
-                                "        3. Latitude Longitude\n"+
-                                "        4. Postal code\n"+
-                                "        5. City\n"+
-                                "        6. Price\n"+
-                                "        7. Logout \n");
-                System.out.print("Select: ");
-                val = sc.nextLine();
-                try {
-                    choice = Integer.parseInt(val);
-                    switch (choice) { 
-                        case 1:
-                            close();
-                            break;
-                        case 2:
-                            search(val);
-                            break;
-                        case 3:
-                            search(val);
-                            break;
-                        case 4:
-                            search(val);
-                            break;
-                        case 5:
-                            search(val);
-                            break;
-                        case 6:
-                            search(val);
-                            break;
-                        case 7:
-                            System.out.println("\nLogging out...");
-                            Thread.sleep(1000);
-                            user = null;
-                            Menu();
-                            break;
-                        default:
-                            System.out.println("Invalid option");
-                            break;
-                    }
-                } catch (NumberFormatException e) {
-                    val = "-1";
-                }
-            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0 && val.compareTo("6") != 0 && val.compareTo("7") != 0);
-            if (val.equals("1")) close();    
-            
-        }else {
-            System.out.println("\nConnection Failed");
+    private void HDshowListing(String host_id) throws SQLException{
+        ResultSet rs = db.GetAllActiveListings(host_id);
+        System.out.printf("-----------------------------------------------------------" +
+        "-----------------------------------------------------------\n" );
+        System.out.printf("%-4s %-15s %-10s %-10s %-10s %-25s %-20s%n",
+                "ID", "Type of Listing", "Latitude", "Longitude", "Postal Code", "City", "Country");
+
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String typeOfListing = rs.getString("type_of_listing");
+            float latitude = rs.getFloat("latitude");
+            float longitude = rs.getFloat("longitude");
+            String postalCode = rs.getString("postal_code");
+            String city = rs.getString("city");
+            String country = rs.getString("country");
+
+            System.out.printf("%-4d %-15s %-10.4f %-10.4f %-10s %-25s %-20s %n",
+                    id, typeOfListing, latitude, longitude, postalCode, city, country);
         }
+        System.out.printf("-----------------------------------------------------------" +
+        "-----------------------------------------------------------" );
     }
 
+    private void HDbookingsAvailable(String list_id) throws SQLException{
+        ResultSet rs = db.GetlistingBookingsAvailable(list_id);
+        System.out.printf("-------------------------------------------\n" );
+        System.out.printf("%-4s %-15s %-15s %-15s %n",
+                "ID", "Start Date", "End Date", "Pricing");
 
-   
-	
-	private void search(String search) {
-		String[] val;
-		String[] dates = new String[2];
-        LocalDate enteredStartDate;
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String start_date = rs.getString("start_date");
+            String finish_date = rs.getString("finish_date");
+            String pricing = rs.getString("pricing");
 
-		dates[0] = "";
-
-		String[] amenities = new String[10];
-        
-		List<String> col = new ArrayList<String>();
-		List<String> col_val = new ArrayList<String>();
-		
-
-        /**Case 1: Type of Listing
-         * val[0] = Type of Listing
-         */
-        if(search.equals("2")){  // Type of Listing
-            val = new String[1];
-            do {
-                System.out.println("Enter type of listing: ");
-                System.out.println("1. Entire home/apt");
-                System.out.println("2. Private room");
-                System.out.println("3. Shared room");
-                val[0] = sc.nextLine().trim();
-                if (val[0].equals("1") || val[0].equals("2") || val[0].equals("3")) {
-                    break;
-                }
-                else {
-                    System.out.println("Invalid type of listing");
-                }
-            } while (true);
+            System.out.printf("%-4s %-15s %-15s %-15s %n",
+                    id, start_date, finish_date, pricing);
         }
-        /**
-         * Case 3: Latitude, Longitude and Distance
-         * 
-         * val[0] = Latitude
-         * val[1] = Longitude
-         * val[2] = Distance
-         */
-		else if(search.equals("3")) { // Latitude and Longitude
-			val = new String[3];
+        System.out.printf("-------------------------------------------\n" );
+    }
 
-            do { // get lat
-                System.out.print("Enter latitude: ");
-                val[0] = sc.nextLine().trim();
-                Double num = Double.parseDouble(val[0]);
-                if (num < -90 || num > 90) {
-                    System.out.println("Invalid latitude");
-                }
-                else{
-                    break;
-                }
-            } while (true);
-            do { // get lon
-                System.out.print("Enter longitude: ");
-                val[1] = sc.nextLine().trim();
-                Double num = Double.parseDouble(val[1]);
-                if (num < -180 || num > 180) {
-                    System.out.println("Invalid longitude");
-                }
-                else{
-                    break;
-                }
-            } while (true);
-			do { // get Distance
-				System.out.print("Distance (Defaults 50Km): ");
-				val[2] = sc.nextLine().trim();
-				if(val[2].equals("")) {
-					val[2] = "50";
-					break;
-				}
-                try{
-                    Double.parseDouble(val[2]);
-                    break;
-                }catch(Exception e){
-                    System.out.println("Invalid distance");
-                }
-			} while (true);
-		} 
-        /**
-         * Case 4: Postal Code
-         * val[0] = Postal Code
-         */
-        else if(search.equals("4")) { // Postal Code
-				val = new String[10];
-				do { // Postal code
-					System.out.print("Postal Code: ");
-					val[0] = sc.nextLine().trim();
-					if(val[0].equals("")) {
-                        System.out.println("Invalid postal code, Enter Postal Code again");
-                    } else {
-                        break;
-                    }
-				} while(true);
+    private void HDshowListingAvailability(String listing_id) throws SQLException{
+        ResultSet rs = db.GetListingAvailability(listing_id);
+        System.out.printf("------------------------------------------\n");
+        System.out.printf("%-10s %-15s %-15s %n",
+                "listing_id", "date", "price");
 
+        while (rs.next()) {
+            int id = rs.getInt("listing_id");
+            String date = rs.getString("date");
+            float price = rs.getFloat("price");
 
-
-				// System.out.print("Suite Number (leave blank if not applicable): ");
-				// val[1] = sc.nextLine().trim();
-				// if (!val[1].equals("")) {
-				// 	filtered_columns_final.add("suite_num");
-				// 	filtered_vals_final.add(val[1]);
-				// }
-				// do {
-				// 	System.out.print("Street Name: ");
-				// 	val[2] = sc.nextLine().trim();
-				// 	if(val[2].equals("")) {
-				// 		invalidEntry();
-				// 	} else {
-				// 		filtered_columns_final.add("street_name");
-				// 		filtered_vals_final.add(val[2]);
-				// 	}
-				// } while(val[2].equals(""));
-				// do {
-				// 	System.out.print("City: ");
-				// 	val[3] = sc.nextLine().trim();
-				// 	if(val[3].equals("")) {
-				// 		invalidEntry();
-				// 	} else {
-				// 		filtered_columns_final.add("city");
-				// 		filtered_vals_final.add(val[3]);
-				// 	}
-				// } while(val[3].equals(""));
-				// do {
-				// 	System.out.print("Country: ");
-				// 	val[4] = sc.nextLine().trim();
-				// 	if(val[4].equals("")) {
-				// 		invalidEntry();
-				// 	} else {
-				// 		filtered_columns_final.add("country");
-				// 		filtered_vals_final.add(val[4]);
-				// 	}
-				// } while(val[4].equals(""));
-		} 
-        /**
-         * Case 5: City
-         * val[0] = City
-         */
-        else if(search.equals("5")) { // City
-            val = new String[1];
-            do {
-                System.out.print("Enter city: ");
-                val[0] = sc.nextLine().trim();
-                if(val[0].equals("")) {
-                    System.out.println("Invalid city");
-                } else {
-                    break;
-                }
-            } while(true);
+            System.out.printf("%-10s %-15s %-15s %n",
+                    id, date, price);
         }
-	    /**
-         * Case 6: Price Range
-         * val[0] = Minimum Price
-         * val[1] = Maximum Price
-         */
-		else{
-            val = new String[2];
-            do{
-                System.out.print("Enter minimum price: ");
-                val[0] = sc.nextLine().trim();
-                try{
-                    Double.parseDouble(val[0]);
-                    break;
-                }catch(Exception e){
-                    System.out.println("Invalid price");
-                }
-            }while(true);
-            do{
-                System.out.print("Enter maximum price: ");
-                val[1] = sc.nextLine().trim();
-                try{
-                    Double.parseDouble(val[1]);
-                    break;
-                }catch(Exception e){
-                    System.out.println("Invalid price");
-                }
-            }while(true);
-        }
-		
-        // Dates and Amenities
+        System.out.printf("------------------------------------------\n");
+    }
 
-        String temp;
+    private void HDaddListingAvailability(String listing_id) throws SQLException{
+       Boolean done = false;
         do{
-            System.out.println("Do you want to filter dates? (y/n): ");
-            temp = sc.nextLine().trim();
+            List<String> calendar_availability = new ArrayList<>();
+            Boolean added_date = false;
+            String startDateStr;
+            String endDateStr;
+            String price = "";
 
-            
-            if(temp.equals("n")){
-                dates[0] = "";
-                dates[1] = "";
-            }
-            else if(!temp.equals("y")){
-                System.out.println("Invalid input");
-            }
-        }while(!temp.equals("y") && !temp.equals("n"));
-        
-        if(temp.equals("y")){
-                System.out.println("\nFilter DATES\n");
-                do{            // --- Start Date
-                    System.out.println("Enter start date (dd/mm/yyyy): ");
-                    dates[0] = sc.nextLine().trim();
-                    try{
-                        LocalDate tmr = LocalDate.now().plusDays(1);
-                        enteredStartDate = LocalDate.parse(dates[0], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                        
-                        if (enteredStartDate.isBefore(tmr)) {
-                            System.out.println("Start date should be after the present date.");
+            // assign dates
+            do{
+                System.out.print("Enter start date (yyyy-MM-dd): ");
+                startDateStr = sc.nextLine().trim();
+                System.out.print("Enter end date (yyyy-MM-dd): ");
+                endDateStr = sc.nextLine().trim();
+                try {
+                    if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                        LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                        if (startDate.isBefore(endDate)) {
+                            LocalDate currentDate = startDate;
+                            while (!currentDate.isAfter(endDate)) {
+                                calendar_availability.add(dateFormat.format(currentDate));
+                                currentDate = currentDate.plusDays(1);
+                            }
+                            added_date = true;
+                        } else {
+                            System.out.println("Error: Start date must be before the end date.");
                         }
-                        else{ break;}
-                    }catch(Exception e){
-                        System.out.println("Invalid date format");
                     }
-                }while(true);
-                do{            // --- End Date
-                System.out.println("Enter end date (dd/mm/yyyy): ");
-                dates[1] = sc.nextLine().trim();
-                try{
-                    LocalDate enteredEndDate = LocalDate.parse(dates[1], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-    
-                    if (enteredEndDate.isBefore(enteredStartDate)) {
-                        System.out.println("End date should be after the start date.");
-                    }else{break;}
-                }catch(Exception e){
-                    System.out.println("Invalid date format");
+
+                } catch (Exception e) {
+                    System.out.println("Error: Wrong Input." + e);;
                 }
-                // Check other things
-            }while(true);
+
+            } while(!added_date);
+            
+            // assign price 
+            float priceF = -1;
+            do{
+                System.out.print("Price: ");
+                price = sc.nextLine().trim().toLowerCase();
+                try {
+                    priceF = Float.parseFloat(price);
+                } catch (NumberFormatException e) {
+                    System.out.print("Please input a valid value \n");
+                    priceF = -1; // Set latitude to null if invalid number format
+                }
+            } while(priceF < 0);
+
+            if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                db.addAvailability(listing_id, calendar_availability, price);
             }
-      
-        if(dates[0].equals("")) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-            LocalDate today = LocalDate.now();
-			dates[0] = formatter.format(today);
-			dates[1] = "";
-		}
-        
+            System.out.println("Completed");
+            String answerContinue;
+            do{
+                System.out.println("Do you want to add more availability days? \n"+
+                                "    1. Yes\n"+ "    2. No");
+                System.out.print("Select: ");
+                answerContinue = sc.nextLine().trim().toLowerCase();
+                if (answerContinue.equals("2")){
+                    done = true;
+                }
+                if (!answerContinue.equals("1") && !answerContinue.equals("2")){
+                    System.out.println("Invalid Input");
+                }
+            } while (!answerContinue.equals("1") && !answerContinue.equals("2"));
+        } while(!done);
 
+       System.out.println("Added!");
+       HDshowListingAvailability(listing_id);
+   }
+
+    private void HDchangeListingPricing(String listing_id) throws SQLException{
+       Boolean done = false;
         do{
-            System.out.println("Do you want to filter amenities? (y/n): ");
-            temp = sc.nextLine().trim();
-        }while(!temp.equals("y") && !temp.equals("n"));
-        
-        if(temp.equals("y")){
-            System.out.println("\nFilter AMENITIES\n");
-            // Todo: add all amenities
-            /*
-                wifi BOOLEAN NOT NULL DEFAULT 0,
-                washer BOOLEAN NOT NULL DEFAULT 0,
-                air_conditioning BOOLEAN NOT NULL DEFAULT 0,
-                dedicated_workspace BOOLEAN NOT NULL DEFAULT 0,
-                hair_dryer BOOLEAN NOT NULL DEFAULT 0,
-                kitchen BOOLEAN NOT NULL DEFAULT 0,
-                dryer BOOLEAN NOT NULL DEFAULT 0,
-                heating BOOLEAN NOT NULL DEFAULT 0,
-                tv BOOLEAN NOT NULL DEFAULT 0,
-                iron BOOLEAN NOT NULL DEFAULT 0,
-            */
-            do {
-                System.out.print("wifi Included? (y/n or leave blank): ");
-                amenities[0] = sc.nextLine().trim();
-                if(amenities[0].equals("")) {
-                    break;
-                }
-                if(!amenities[0].equalsIgnoreCase("y") && !amenities[0].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("wifi");
-                    col_val.add(amenities[0]);
-                }
-            } while(!amenities[0].equalsIgnoreCase("y") && !amenities[0].equalsIgnoreCase("n"));
-            do {
-                System.out.print("washer Included? (y/n or leave blank): ");
-                amenities[1] = sc.nextLine().trim();
-                if(amenities[1].equals("")) {
-                    break;
-                }
-                if(!amenities[1].equalsIgnoreCase("y") && !amenities[1].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("washer");
-                    col_val.add(amenities[1]);
-                }
-            } while(!amenities[1].equalsIgnoreCase("y") && !amenities[1].equalsIgnoreCase("n"));
-            do {
-                System.out.print("air_conditioning Included? (y/n or leave blank): ");
-                amenities[2] = sc.nextLine().trim();
-                if(amenities[2].equals("")) {
-                    break;
-                }
-                if(!amenities[2].equalsIgnoreCase("y") && !amenities[2].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("air_conditioning");
-                    col_val.add(amenities[2]);
-                }
-            } while(!amenities[2].equalsIgnoreCase("y") && !amenities[2].equalsIgnoreCase("n"));
-            do {
-                System.out.print("dedicated_workspace Included? (y/n or leave blank): ");
-                amenities[3] = sc.nextLine().trim();
-                if(amenities[3].equals("")) {
-                    break;
-                }
-                if(!amenities[3].equalsIgnoreCase("y") && !amenities[3].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("dedicated_workspace");
-                    col_val.add(amenities[3]);
-                }
-            } while(!amenities[3].equalsIgnoreCase("y") && !amenities[3].equalsIgnoreCase("n"));
-            do {
-                System.out.print("hair_dryer Included? (y/n or leave blank): ");
-                amenities[4] = sc.nextLine().trim();
-                if(amenities[4].equals("")) {
-                    break;
-                }
-                if(!amenities[4].equalsIgnoreCase("y") && !amenities[4].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("hair_dryer");
-                    col_val.add(amenities[4]);
-                }
-            } while(!amenities[4].equalsIgnoreCase("y") && !amenities[4].equalsIgnoreCase("n"));
-            do {
-                System.out.print("kitchen Included? (y/n or leave blank): ");
-                amenities[5] = sc.nextLine().trim();
-                if(amenities[5].equals("")) {
-                    break;
-                }
-                if(!amenities[5].equalsIgnoreCase("y") && !amenities[5].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("kitchen");
-                    col_val.add(amenities[5]);
-                }
-            } while(!amenities[5].equalsIgnoreCase("y") && !amenities[5].equalsIgnoreCase("n"));
-            do {
-                System.out.print("dryer Included? (y/n or leave blank): ");
-                amenities[6] = sc.nextLine().trim();
-                if(amenities[6].equals("")) {
-                    break;
-                }
-                if(!amenities[6].equalsIgnoreCase("y") && !amenities[6].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("dryer");
-                    col_val.add(amenities[6]);
-                }
-            } while(!amenities[6].equalsIgnoreCase("y") && !amenities[6].equalsIgnoreCase("n"));
-            do {
-                System.out.print("heating Included? (y/n or leave blank): ");
-                amenities[7] = sc.nextLine().trim();
-                if(amenities[7].equals("")) {
-                    break;
-                }
-                if(!amenities[7].equalsIgnoreCase("y") && !amenities[7].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("heating");
-                    col_val.add(amenities[7]);
-                }
-            } while(!amenities[7].equalsIgnoreCase("y") && !amenities[7].equalsIgnoreCase("n"));
-            do {
-                System.out.print("tv Included? (y/n or leave blank): ");
-                amenities[8] = sc.nextLine().trim();
-                if(amenities[8].equals("")) {
-                    break;
-                }
-                if(!amenities[8].equalsIgnoreCase("y") && !amenities[8].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("tv");
-                    col_val.add(amenities[8]);
-                }
-            } while(!amenities[8].equalsIgnoreCase("y") && !amenities[8].equalsIgnoreCase("n"));
-            do {
-                System.out.print("iron Included? (y/n or leave blank): ");
-                amenities[9] = sc.nextLine().trim();
-                if(amenities[9].equals("")) {
-                    break;
-                }
-                if(!amenities[9].equalsIgnoreCase("y") && !amenities[9].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("iron");
-                    col_val.add(amenities[9]);
-                }
-            } while(!amenities[9].equalsIgnoreCase("y") && !amenities[9].equalsIgnoreCase("n"));
+            List<String> calendar_availability = new ArrayList<>();
+            Boolean added_date = false;
+            String startDateStr;
+            String endDateStr;
+            String price = "";
 
-        
+            // assign dates
+            do{
+                System.out.print("Enter start date (yyyy-MM-dd): ");
+                startDateStr = sc.nextLine().trim();
+                System.out.print("Enter end date (yyyy-MM-dd): ");
+                endDateStr = sc.nextLine().trim();
+                try {
+                    if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                        LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                        if (startDate.isBefore(endDate)) {
+                            LocalDate currentDate = startDate;
+                            while (!currentDate.isAfter(endDate)) {
+                                calendar_availability.add(dateFormat.format(currentDate));
+                                currentDate = currentDate.plusDays(1);
+                            }
+                            added_date = true;
+                        } else {
+                            System.out.println("Error: Start date must be before the end date.");
+                        }
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error: Wrong Input." + e);;
+                }
+
+            } while(!added_date);
+            
+            // assign price 
+            float priceF = -1;
+            do{
+                System.out.print("Price: ");
+                price = sc.nextLine().trim().toLowerCase();
+                try {
+                    priceF = Float.parseFloat(price);
+                } catch (NumberFormatException e) {
+                    System.out.print("Please input a valid value \n");
+                    priceF = -1; // Set latitude to null if invalid number format
+                }
+            } while(priceF < 0);
+
+            if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                db.changePrice(listing_id, startDateStr, endDateStr, price);
+            }
+            System.out.println("Completed");
+            String answerContinue;
+            do{
+                System.out.println("Do you want to change more prices? \n"+
+                                "    1. Yes\n"+ "    2. No");
+                System.out.print("Select: ");
+                answerContinue = sc.nextLine().trim().toLowerCase();
+                if (answerContinue.equals("2")){
+                    done = true;
+                }
+                if (!answerContinue.equals("1") && !answerContinue.equals("2")){
+                    System.out.println("Invalid Input");
+                }
+            } while (!answerContinue.equals("1") && !answerContinue.equals("2"));
+        } while(!done);
+
+       System.out.println("Added!");
+       HDshowListingAvailability(listing_id);
+   }
+
+    private void HDdeleteAvailability(String listing_id) throws SQLException{
+       Boolean done = false;
+        do{
+            List<String> calendar_availability = new ArrayList<>();
+            Boolean added_date = false;
+            String startDateStr;
+            String endDateStr;
+            String price = "";
+
+            // assign dates
+            do{
+                System.out.print("Enter start date (yyyy-MM-dd): ");
+                startDateStr = sc.nextLine().trim();
+                System.out.print("Enter end date (yyyy-MM-dd): ");
+                endDateStr = sc.nextLine().trim();
+                try {
+                    if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                        LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                        if (startDate.isBefore(endDate)) {
+                            LocalDate currentDate = startDate;
+                            while (!currentDate.isAfter(endDate)) {
+                                calendar_availability.add(dateFormat.format(currentDate));
+                                currentDate = currentDate.plusDays(1);
+                            }
+                            added_date = true;
+                        } else {
+                            System.out.println("Error: Start date must be before the end date.");
+                        }
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error: Wrong Input." + e);;
+                }
+
+            } while(!added_date);
+            
+
+            if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                db.deleteAvailability(listing_id, startDateStr, endDateStr);
+            }
+            System.out.println("Completed");
+            String answerContinue;
+            do{
+                System.out.println("Do you want to delete more available dates? \n"+
+                                "    1. Yes\n"+ "    2. No");
+                System.out.print("Select: ");
+                answerContinue = sc.nextLine().trim().toLowerCase();
+                if (answerContinue.equals("2")){
+                    done = true;
+                }
+                if (!answerContinue.equals("1") && !answerContinue.equals("2")){
+                    System.out.println("Invalid Input");
+                }
+            } while (!answerContinue.equals("1") && !answerContinue.equals("2"));
+        } while(!done);
+
+       System.out.println("Completed!");
+       HDshowListingAvailability(listing_id);
+   }
+
+    private void HDremoveListing(String listing_id) throws SQLException{
+        String answer = "";
+        System.out.println("This action will unlist your listing and cancel all pending bookings: ");
+        System.out.println("   1. Exit\n" + "   2. Confirm");
+            do{
+                System.out.print("Select: ");
+                answer = sc.nextLine().trim();
+
+                if (answer.equals("1")){
+                    return;
+                }
+                else if (answer.equals("2")){
+                    db.UnlistListing(listing_id);
+                    System.out.println("Completed!");
+                }
+                else{
+                    System.out.println("Invalid Input");
+                    answer = "";
+                }
+               
+            } while (answer.isEmpty());
+
+   }
+
+    private void HDmanageListings(String host_id) throws SQLException{
+        HDshowListing(host_id);
+        if(!db.ListingNotEmpty(host_id)){
+            System.out.println("No listings present, exiting:");
+            return;
         }
-		
-        // SQL Queries
+        System.out.println("\n Select the ID of the listing for changes:");
+        String selectedID = "";
+        do {
+            System.out.print("Select: ");
+            selectedID = sc.nextLine().trim();
+            try {
+                Integer intID = Integer.parseInt(selectedID);
+            } catch (NumberFormatException e) {
+                System.out.println("Please input a valid value");
+                selectedID = "";
+            }
+            if (!selectedID.isEmpty()){
+                if(!db.ListingIDNotEmpty(host_id, selectedID)){
+                    System.out.println("Please input a valid value");
+                    selectedID = "";
+                }
+            }
+        } while (selectedID.isEmpty());
 
-        
-        
+        String val;
+        int choice;
+        do {
+            System.out.println("\n Operation to perform: \n"+
+                            "        1. Exit \n"+
+                            "        2. Add availability and assign price\n"+
+                            "        3. Change price\n"+
+                            "        4. Remove listing availability\n"+
+                            "        5. Remove Listing\n");
+            System.out.print("Select: ");
+            val = sc.nextLine();
+            try {
+                choice = Integer.parseInt(val);
+                switch (choice) { 
+                    case 1:
+                        break;
+                    case 2:
+                        // Add availability and assign price;
+                        HDshowListingAvailability(selectedID);
+                        HDaddListingAvailability(selectedID);
+                        break;
+                    case 3:
+                        // Change price
+                        HDshowListingAvailability(selectedID);
+                        HDchangeListingPricing(selectedID);
+                        break;
+                    case 4:
+                        // Delete available dates
+                        HDshowListingAvailability(selectedID);
+                        HDdeleteAvailability(selectedID);
+                        break;
+                    case 5:
+                        // Remove Listing;
+                        HDshowListingAvailability(selectedID);
+                        HDremoveListing(selectedID);
+                        break;
+                    default:
+                        System.out.println("Invalid option");
+                        break;
+                }
+            } catch (NumberFormatException e) {
+                val = "-1";
+            }
+        } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0);
+        if (val.equals("1")) close();  
+    }
 
-		}
+    private void HDcancelBookings(String host_id) throws SQLException{
+        HDshowListing(host_id);
+        if(!db.ListingNotEmpty(host_id)){
+            System.out.println("No listings present, exiting:");
+            return;
+        }
+        System.out.println("\n Select the ID of the listing for booking changes:");
+        String selectedID = "";
+        do {
+            System.out.print("Select: ");
+            selectedID = sc.nextLine().trim();
+            try {
+                Integer intID = Integer.parseInt(selectedID);
+            } catch (NumberFormatException e) {
+                System.out.println("Please input a valid value");
+                selectedID = "";
+            }
+            if (!selectedID.isEmpty()){
+                if(!db.ListingIDNotEmpty(host_id, selectedID)){
+                    System.out.println("Please input a valid value");
+                    selectedID = "";
+                }
+            }
+        } while (selectedID.isEmpty());
 
+        HDbookingsAvailable(selectedID); 
 
- 
+        System.out.print("Select the id of the booking to cancel\n");
+        String bookingID = "";
+        do {
+            System.out.print("Select: ");
+            bookingID = sc.nextLine().trim();
+            try {
+                Integer bID = Integer.parseInt(bookingID);
+            } catch (NumberFormatException e) {
+                System.out.println("Please input a valid value");
+                bookingID = "";
+            }
+            if (!bookingID.isEmpty()){
+                if(!db.BookingsAvailableIsNotEmpty(selectedID, bookingID)){
+                    System.out.println("Please input a valid value");
+                    bookingID = "";
+                }
+            }
+        } while (bookingID.isEmpty());
 
-    //_________________________ Bookings _________________________ \\
+        db.HostCancelBookingOne(bookingID);
+        System.out.println("Completed!");
+    }
+//_________________________ Bookings _________________________ \\
     // Todo: Update availability after adding a booking
     private void makeBooking() throws SQLException, ParseException {
         String lid;
@@ -1256,7 +1208,7 @@ public class Controller {
             timePeriod = (int) ChronoUnit.DAYS.between(enteredStartDate, enteredEndDate);
             
             // Calculate Total Price: timePeriod * price
-            lid_price = Double.parseDouble(db.select("availability", "price", "listing_id", lid).get(0));
+            lid_price = Double.parseDouble(db.select("listing", "pricing", "id", lid).get(0));
             Double total = timePeriod * lid_price;
             // Print Invoice:
             System.out.println("\nInvoice: ");
@@ -1274,32 +1226,7 @@ public class Controller {
                 java.util.Date edate = inputFormat.parse(enddate);
                 String fstartdate = outputFormat.format(sdate);
                 String fenddate = outputFormat.format(edate);
-                int bid = db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");       
-                String booking_id = Integer.toString(bid);
-                
-                // Update Availability
-                List<String> sd = db.select("bookings", "start_date", "id", booking_id);
-                List<String> ed = db.select("bookings", "finish_date", "id", booking_id);
-
-                LocalDate startDate = LocalDate.parse(sd.get(0));
-                LocalDate endDate = LocalDate.parse(ed.get(0));
-
-                // Create a list to store all the dates between start_date and finish_date
-                List<String> allDates = new ArrayList<>();
-
-                // Loop from start_date to finish_date and add each date to the list
-                LocalDate currentDate = startDate;
-                while (!currentDate.isAfter(endDate)) {
-                    allDates.add(currentDate.toString());
-                    currentDate = currentDate.plusDays(1);
-                }
-                int x = Integer.parseInt(db.select("bookings", "listing_id", "id", booking_id).get(0));
-                for (String date: allDates){
-                    db.deleteAvailability("availability", x , date);
-                }
-        
-
-
+                db.bookListings(Integer.parseInt(lid), this.id, fstartdate, fenddate, total, "normal");                
             }
             else{
                 System.out.println("Booking cancelled");
@@ -1325,37 +1252,14 @@ public class Controller {
             }
         } while (!db.verifybooking(booking_id, this.id));
 
-        // Update Availability
-            List<String> startdate = db.select("bookings", "start_date", "id", booking_id);
-            List<String> enddate = db.select("bookings", "finish_date", "id", booking_id);
-
-            LocalDate startDate = LocalDate.parse(startdate.get(0));
-            LocalDate endDate = LocalDate.parse(enddate.get(0));
-
-            // Create a list to store all the dates between start_date and finish_date
-            List<String> allDates = new ArrayList<>();
-
-            // Loop from start_date to finish_date and add each date to the list
-            LocalDate currentDate = startDate;
-            while (!currentDate.isAfter(endDate)) {
-                allDates.add(currentDate.toString());
-                currentDate = currentDate.plusDays(1);
-            }
-            // System.out.println(allDates);
-        int x = Integer.parseInt(db.select("bookings", "listing_id", "id", booking_id).get(0));
-
         // Delete Booking
-        db.deletebookings("bookings", booking_id);
-		
-        //Update Availability
-        for (String date: allDates){
-            db.insertAvailability("availability", x, date);
-        }
-        
+        // Update Availability
+
 
         System.out.println("Your Booking was Cancelled !");
 
     }
+
 
     private void rateBookings() {
 
@@ -1364,9 +1268,6 @@ public class Controller {
 
 
 //______________________ Helper Functions ______________________ \\
-
-
-    
 
 
 
@@ -1389,7 +1290,6 @@ public class Controller {
         }
         return unavailableDates.isEmpty();
     }
-
 
     /* Verify Listing id */
     private boolean verifylisting(String lid) throws SQLException {
@@ -1438,7 +1338,7 @@ public class Controller {
         return false;
     }
 
-    private Date addDays(Date date, int days) {
+     private Date addDays(Date date, int days) {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(java.util.Calendar.DAY_OF_YEAR, days);

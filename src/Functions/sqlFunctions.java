@@ -316,11 +316,6 @@ public class sqlFunctions {
 		}
 	}
 	
-	
-
-
-
-
 
 	/** Returns the id that corresponds to the given email**/
 	public String getIdFromEmail(String email){
@@ -390,8 +385,13 @@ public class sqlFunctions {
 			for (String date : calendar_availability){
 				String query = "INSERT INTO availability (listing_id, date, price) VALUES (%s, '%s', %s)"
 							+ "ON DUPLICATE KEY UPDATE price = %s;";
-				query = String.format(query,listingId, date, price, price);
-				this.stmt.execute(query);
+				if(InBookingNormal(listingId, date)){
+					System.out.println(date + " already booked.");
+				}
+				else{
+					query = String.format(query,listingId, date, price, price);
+					this.stmt.execute(query);
+				}
 			}
 			return true;
 		}catch(Exception e){
@@ -400,5 +400,245 @@ public class sqlFunctions {
 		}
 	}
 
+	public ResultSet GetAllActiveListings(String host_id){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM listing WHERE host_id = %s AND listed=1 ORDER BY id";
+			query = String.format(query,host_id);
+			rs = this.stmt.executeQuery(query);
+			return rs;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return rs;
+		}
+	}
+
+	public boolean ListingNotEmpty(String host_id) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM listing WHERE host_id = %s AND listed=1 ORDER BY id";
+			query = String.format(query, host_id);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public boolean ListingIDNotEmpty(String host_id, String listing_id) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM listing WHERE host_id = %s AND listed=1 AND id = %s ORDER BY id";
+			query = String.format(query, host_id, listing_id);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	
+	public ResultSet GetListingAvailability(String listing_id){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM availability WHERE listing_id = %s AND date >= CURRENT_DATE() ORDER BY date";
+			query = String.format(query,listing_id);
+			rs = this.stmt.executeQuery(query);
+			return rs;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return rs;
+		}
+	}
+
+	public boolean ListingAvailabilityNotEmpty(String listing_id) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM availability WHERE listing_id = %s AND date >= CURRENT_DATE() ORDER BY date";
+			query = String.format(query,listing_id);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public boolean changePrice(String listingId, String startDate,  String endDate,String price){
+		try{
+			String query = "UPDATE availability SET price = %s "
+							+ "WHERE listing_id = %s AND date BETWEEN '%s' AND '%s';";
+			query = String.format(query, price, listingId, startDate, endDate);
+			Integer num_rows = this.stmt.executeUpdate(query);
+			System.out.println("Number of entries changed: " + num_rows);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean deleteAvailability(String listingId, String startDate,  String endDate){
+		try{
+			String query = "DELETE FROM availability "
+							+ " WHERE listing_id = %s AND date BETWEEN '%s' AND '%s';";
+			query = String.format(query,  listingId, startDate, endDate);
+			Integer num_rows = this.stmt.executeUpdate(query);
+			System.out.println("Number of entries deleted: " + num_rows);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean InBookingNormal(String listing_id, String date) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM bookings WHERE listing_id = %s AND status = 'normal'" 
+						+ " AND '%s' BETWEEN start_date AND finish_date";
+			query = String.format(query,listing_id, date);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public boolean UnlistListing(String listing_id){
+		try{
+			String queryListing = "UPDATE listing SET listed = 0 "
+							+ " WHERE id = %s;";
+			queryListing = String.format(queryListing, listing_id);
+			this.stmt.executeUpdate(queryListing);
+
+			String queryAvailability = "DELETE FROM availability"
+							+ " WHERE listing_id = %s;";
+			queryAvailability = String.format(queryAvailability, listing_id);
+			Integer numAvail = this.stmt.executeUpdate(queryAvailability);
+			
+			String queryBookings = "UPDATE bookings SET status = 'host_cancelled' "
+							+ " WHERE listing_id = %s AND finish_date > CURRENT_DATE();";
+			queryBookings = String.format(queryBookings, listing_id);
+			Integer numCancelled = this.stmt.executeUpdate(queryBookings);
+
+			System.out.println("Number of bookings cancelled: " + numCancelled);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
+
+	public ResultSet GetlistingBookingsAvailable(String listing_id){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM bookings where listing_id = %s AND status = 'normal'";
+			query = String.format(query,listing_id);
+			rs = this.stmt.executeQuery(query);
+			return rs;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return rs;
+		}
+	}
+
+	public boolean BookingsAvailableIsNotEmpty(String listing_id, String booking_id){
+		ResultSet rs = null;
+		try{
+			String query = "SELECT * FROM bookings where listing_id = %s AND id = %s";
+			query = String.format(query,listing_id, booking_id);
+			rs = this.stmt.executeQuery(query);
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
+	}
+
+	public boolean HostCancelBookingOne(String booking_id){
+		try{
+
+			String queryBookings = "UPDATE bookings SET status = 'host_cancelled' "
+							+ " WHERE id = %s;";
+			queryBookings = String.format(queryBookings, booking_id);
+			Integer numCancelled = this.stmt.executeUpdate(queryBookings);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
 }
