@@ -2,6 +2,8 @@ package Functions;
 
 
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;  
@@ -17,6 +19,11 @@ public class sqlFunctions {
 	public Statement stmt = null;
 
 	
+	
+	
+// ------------------------------ Connection FUNCTIONS ------------------------------ //	
+
+
 	/** Connects **/
 	public boolean connect() {
 		boolean result = true;
@@ -35,7 +42,7 @@ public class sqlFunctions {
 		}
 		return result;
 	}
-	
+
 	/** Disconnect */
 	public void disconnect() {
 		try {
@@ -61,6 +68,9 @@ public class sqlFunctions {
 		}
 		return rs;
 	}
+
+
+// ------------------------------ INSERT FUNCTIONS ------------------------------ //
 
 	/** Create a host */
 	public boolean createuser(String table, String name, String email, String password, String address, String occupation, String sin, String dob ) throws SQLException{ 
@@ -100,7 +110,6 @@ public class sqlFunctions {
 		}
 	}
 	
-
 	/** Create a Table for credit card */
 	public boolean link_cc(String cc_num, String cc_name, String cc_exp, String cc_cvv, int uid) throws SQLException{ 
 		try{
@@ -113,6 +122,52 @@ public class sqlFunctions {
 			return false;
 		}
 	}
+
+	public int bookListings(int listingId, int renterId, String sformattedDate, String eformattedDate, Double totalPricing, String status) {
+		String sql = "INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status) VALUES (?, ?, ?, ?, ?, ?)";
+		
+		int generatedId = -1; // Initialize to a default value in case the insert fails
+		
+		try (PreparedStatement statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+			statement.setInt(1, listingId);
+			statement.setInt(2, renterId);
+			statement.setString(3, sformattedDate);
+			statement.setString(4, eformattedDate);
+			statement.setDouble(5, totalPricing);
+			statement.setString(6, status);
+			
+			int rowsAffected = statement.executeUpdate();
+			if (rowsAffected > 0) {
+				// Retrieve the auto-generated ID of the inserted booking
+				ResultSet generatedKeys = statement.getGeneratedKeys();
+				if (generatedKeys.next()) {
+					generatedId = generatedKeys.getInt(1);
+				}
+				System.out.println("Booking confirmed. ID: " + generatedId);
+			} else {
+				System.out.println("Booking failed, try again");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("An error occurred while booking the listing.");
+		}
+		
+		return generatedId;
+	}
+	
+
+	public void insertAvailability(String table, int listing_id, String date){
+		try{
+			String query = "INSERT INTO `%s` (listing_id, date) VALUES ('%s', '%s')";
+			query = String.format(query, table, listing_id, date);
+			this.stmt.execute(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		}
+	}
+
+// ------------------------------ SELECT FUNCTIONS ------------------------------ //
+
 
 	/* Find User */
 	public List<String> getUser(String email){
@@ -161,29 +216,7 @@ public class sqlFunctions {
 
 		return info;
 	}
-
-	public ResultSet updateUser(String uid, String name, String email, String pwd, String address, String occup, String sin, String dob){
-		try{
-			String query = "UPDATE user SET name='%s', email='%s', password='%s', address='%s', occupation='%s', sin='%s', dob='%s' WHERE uid = '%s'";
-        	query = String.format(query, name, email, pwd, address, occup, sin, dob, uid);
-			return this.stmt.executeQuery(query);
-		}catch(Exception e){
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			return null;
-		}
-	}
-
-	public ResultSet delUser(String uid){
-		try{
-			String query = "DELETE FROM user WHERE uid = '%s'";
-			query = String.format(query, uid);
-			return this.stmt.executeQuery(query);
-		}catch(Exception e){
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			return null;
-		}
-	}
-
+	
 	public List<String> select(String tableName, String columnToSelect, String columnToMatch, String value) throws SQLException {
         List<String> result = new ArrayList<>();
         try (
@@ -199,26 +232,95 @@ public class sqlFunctions {
         return result;
     }
 
-	public boolean listings(int userID ){ // Add Listing details, create a class if required for listings
-		return true;
+	public boolean verifybooking(String booking_id, int id2) throws SQLException {
+        try (
+            PreparedStatement stm = con.prepareStatement("SELECT id FROM bookings WHERE id = ? AND renter_id = ?")) {
+            stm.setString(1, booking_id);
+            stm.setInt(2, id2);
+            try (ResultSet rs = stm.executeQuery()) {
+                return rs.next(); // If there is a match, rs.next() will return true; otherwise, it will return false.
+            }
+        }
+    }
+
+	public List<String> getAvailableDates(int listingId) {
+        List<String> availableDates = new ArrayList<>();
+        String sql = "SELECT date FROM availability WHERE listing_id = ?";
+        
+        try (PreparedStatement statement = con.prepareStatement(sql)) {
+            statement.setInt(1, listingId);
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String date = resultSet.getString("date");
+                    availableDates.add(date);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("An error occurred while fetching available dates.");
+        }
+        
+        return availableDates;
+    }
+
+
+// ------------------------------ UPDATE FUNCTIONS ------------------------------ //
+
+
+	public ResultSet updateUser(String uid, String name, String email, String pwd, String address, String occup, String sin, String dob){
+		try{
+			String query = "UPDATE user SET name='%s', email='%s', password='%s', address='%s', occupation='%s', sin='%s', dob='%s' WHERE uid = '%s'";
+        	query = String.format(query, name, email, pwd, address, occup, sin, dob, uid);
+			return this.stmt.executeQuery(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return null;
+		}
 	}
 
-	public boolean removeListings(int userID, int ListingId){ // Add other listing details
-		return false; 
-	} 
 
-	public boolean bookListings(int userID, int ListingId){ // Add other listing details
-		return false; 
-	} 
+// ------------------------------ DELETE FUNCTIONS ------------------------------ //
 
-	public boolean cancelBookings(int userID, int bookingId){ // Add other booking details if required
-            // String query = "DELETE FROM bookings WHERE booking_id = ?";
-            // PreparedStatement stmt = con.prepareStatement(query);
-            // stmt.setInt(1, bookingId);
-            // int rowsAffected = stmt.executeUpdate();
-            // return rowsAffected > 0;
-			return true;
-	} 
+
+	public ResultSet delUser(String uid){
+		try{
+			String query = "DELETE FROM user WHERE uid = '%s'";
+			query = String.format(query, uid);
+			return this.stmt.executeQuery(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return null;
+		}
+	}
+	
+	/*	Delete booking */
+	public void deletebookings(String bookings, String booking_id) {
+		try{
+			String query = "DELETE FROM %s WHERE id = %s";
+			query = String.format(query, bookings, booking_id);
+			this.stmt.execute(query);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		}
+	}
+
+
+	public void deleteAvailability(String table, int listing_id, String date) {
+		try {
+			String query = "DELETE FROM `%s` WHERE listing_id = %s AND date = '%s'";
+			query = String.format(query, table, listing_id, date);
+			this.stmt.execute(query);
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+		}
+	}
+	
+	
+
+
+
+
 
 	/** Returns the id that corresponds to the given email**/
 	public String getIdFromEmail(String email){

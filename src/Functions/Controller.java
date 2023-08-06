@@ -2,6 +2,7 @@ package Functions;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,10 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Collections;
-import java.util.ArrayList;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import Users.Host;
 import Users.Renter;
 import Users.Users;
@@ -26,6 +23,9 @@ import Users.Users;
 public class Controller {
     Scanner sc = null;
     sqlFunctions db = null;
+
+    private Users user;
+    private int id;
 
 //______________________ Basic Operation ______________________ \\
 
@@ -50,7 +50,8 @@ public class Controller {
 
     
     /** Opens up Menu */
-    public void Menu() throws SQLException, InterruptedException {
+
+    public void Menu() throws SQLException, InterruptedException, ParseException {
         if (sc != null && db != null) {
             String val;
             int choice;
@@ -59,7 +60,7 @@ public class Controller {
                                 "        1. Exit \n"+
                                 "        2. Login\n"+
                                 "        3. Sign-Up\n");
-                System.out.print("Select:");
+                System.out.print("Select: ");
                 val = sc.nextLine();
                 try {
                     choice = Integer.parseInt(val);
@@ -95,7 +96,8 @@ public class Controller {
     
     /* Logs in User */
     // TODO Get user info and store in memory
-    public void login() throws SQLException, InterruptedException {
+
+    public void login() throws SQLException, InterruptedException, ParseException {
         String email, password;
     
         do {
@@ -107,22 +109,21 @@ public class Controller {
         } while (!verify_login(email, password));
         List<String> userDetails = db.getUser(email);
         
-        Users user;
         if (userDetails.get(8) == "true") { // Renter Dashboard
-            List<String> ccdetails = db.getcc(Integer.valueOf(userDetails.get(0)));
-            System.out.println(ccdetails);
-            	user = new Renter(userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), ccdetails.get(0), ccdetails.get(1), ccdetails.get(2), ccdetails.get(3));
-            	System.out.println("\nWelcome " + user.getName());
-            	renterDashboard(email);
+            id = Integer.valueOf(userDetails.get(0));
+            List<String> ccdetails = db.getcc(id);
+            user = new Renter(userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), ccdetails.get(0), ccdetails.get(1), ccdetails.get(2), ccdetails.get(3));
+            System.out.println("\nWelcome " + user.getName());
+            renterDashboard(email);
         } else { // Host dashboard
-            	user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
-            	System.out.println("\nWelcome " + user.getName());
-            	hostDashboard(email);
+            user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
+            System.out.println("\nWelcome " + user.getName());
+            hostDashboard(email);
 		}
     }
 
     /** Sign up as a Host or customer account */
-    public void signup() throws SQLException{
+    public void signup() throws SQLException, InterruptedException, ParseException{
         if (sc != null && db != null){
             String val;
             int choice;
@@ -162,7 +163,7 @@ public class Controller {
     }
 
     /** Create a new customer account*/
-    public void renter() throws SQLException{
+    public void renter() throws SQLException, InterruptedException, ParseException{
         String name, email, password, dob, address, occup;
         String cc_num, cc_name, cc_exp, cc_cvv; 
         String sin = "";
@@ -303,7 +304,7 @@ public class Controller {
     }
 
     /** Create a new host account */
-    public void host() throws SQLException{
+    public void host() throws SQLException, InterruptedException, ParseException{
         String name, email, password, dob, address, occup;
         String sin = "";
         Boolean verify = true;
@@ -379,8 +380,8 @@ public class Controller {
 
 //_________________________ Dashboard __________________________ \\
 
-    private boolean hostDashboard(String email) throws SQLException, InterruptedException{
-        System.out.println("\nWelcome to the Renter Dashboard");
+    private boolean hostDashboard(String email) throws SQLException, InterruptedException, ParseException{
+        System.out.println("\nWelcome to the Host Dashboard");
         String host_id = db.getIdFromEmail(email);
         if (sc != null && db != null){
             String val;
@@ -421,6 +422,7 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 6:
+                            viewProfile(email);
                             hostDashboard(email);
                             break;
                         case 7:
@@ -443,7 +445,7 @@ public class Controller {
         return true;
     }
     
-    private boolean renterDashboard(String email) throws SQLException, InterruptedException{
+    private boolean renterDashboard(String email) throws SQLException, InterruptedException, ParseException{
         System.out.println("\nWelcome to the Renter Dashboard");
         if (sc != null && db != null){
             String val;
@@ -465,11 +467,11 @@ public class Controller {
                         case 1:
                             break;
                         case 2:
-                            // makeBooking();
+                            makeBooking();
                             renterDashboard(email);
                             break;
                         case 3:
-                            // cancelBooking();
+                            cancelBooking(true);
                             renterDashboard(email);
                             break;
                         case 4:
@@ -485,6 +487,9 @@ public class Controller {
                             renterDashboard(email);
                             break;
                         case 7:
+                            System.out.println("\nLogging out...");
+                            Thread.sleep(1000);
+                            user = null;
                             Menu();
                             break;
                         default:
@@ -503,6 +508,9 @@ public class Controller {
 
         return true;
     }
+
+
+// _________________________ Listing ___________________________ \\
 
     /** New Listing */
     private void HDashAddListing(String host_id) throws SQLException {
@@ -664,19 +672,19 @@ public class Controller {
             // assign dates
             do{
                 System.out.print("Enter start date (yyyy-MM-dd): ");
-                startDateStr = sc.nextLine().trim().toLowerCase();
+                startDateStr = sc.nextLine().trim();
                 System.out.print("Enter end date (yyyy-MM-dd): ");
-                endDateStr = sc.nextLine().trim().toLowerCase();
+                endDateStr = sc.nextLine().trim();
                 try {
                     if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                        Date startDate = dateFormat.parse(startDateStr);
-                        Date endDate = dateFormat.parse(endDateStr);
-                        if (startDate.before(endDate)) {
-                            Date currentDate = startDate;
-                            while (!currentDate.after(endDate)) {
+                        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                        LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                        if (startDate.isBefore(endDate)) {
+                            LocalDate currentDate = startDate;
+                            while (!currentDate.isAfter(endDate)) {
                                 calendar_availability.add(dateFormat.format(currentDate));
-                                currentDate = addDays(currentDate, 1);
+                                currentDate = currentDate.plusDays(1);
                             }
                             added_date = true;
                         } else {
@@ -684,8 +692,8 @@ public class Controller {
                         }
                     }
 
-                } catch (ParseException e) {
-                    System.out.println("Error: Wrong Input.");;
+                } catch (Exception e) {
+                    System.out.println("Error: Wrong Input." + e);;
                 }
 
             } while(!added_date);
@@ -989,11 +997,11 @@ public class Controller {
         Thread.sleep(2000);
         if (userDetails.get(8) == "true") { // Renter Dashboard
             List<String> ccdetails = db.getcc(Integer.valueOf(userDetails.get(0)));
+            System.out.println("User details: " + userDetails);
+            System.out.println("Payment details: " + ccdetails);
+        } else { // Host dashboard
             	System.out.println("User details: " + userDetails);
-            	System.out.println("Payment details: " + ccdetails);
-            } else { // Host dashboard
-            	System.out.println("User details: " + userDetails);
-            }
+        }
         Thread.sleep(2000);
     }
 
@@ -1021,6 +1029,6 @@ public class Controller {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(java.util.Calendar.DAY_OF_YEAR, days);
-        return calendar.getTime();
+        return (Date) calendar.getTime();
     }
 }
