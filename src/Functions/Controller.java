@@ -1622,14 +1622,31 @@ public class Controller {
         boolean check  = verifyavailability(startdate, enddate, lid);
         if (check){
 
-            // Todo: Calculate total price based on each day
-
             // Calculate Number of date: timeperiod = enddate - startdate // timePeriod in days;
             timePeriod = (int) ChronoUnit.DAYS.between(enteredStartDate, enteredEndDate);
-            
+            List<LocalDate> allDatesBetween = new ArrayList<>();
+         
+            for (int i = 0; i <= timePeriod; i++) {
+                allDatesBetween.add(enteredStartDate.plusDays(i));
+            }
+            List<String> allDatesAsString = new ArrayList<>();
+            for (LocalDate date : allDatesBetween) {
+                allDatesAsString.add(date.toString());
+            }
+         
+
+            List<String> prices = db.getPrice(allDatesAsString, lid);
+            System.out.println(prices);
             // Calculate Total Price: timePeriod * price
-            lid_price = Double.parseDouble(db.select("listing", "pricing", "id", lid).get(0));
-            Double total = timePeriod * lid_price;
+            Double total=(double) 0;
+            for(String price : prices){
+                total += Double.parseDouble(price);
+            }
+            // round off total
+            total = Math.round(total * 100.0) / 100.0;
+        
+            
+            
             // Print Invoice:
             System.out.println("\nInvoice: ");
             System.out.println("Listing ID: " + lid);
@@ -1650,10 +1667,10 @@ public class Controller {
                 String booking_id = Integer.toString(bid);
                 
                 // Update Availability
-                List<String> sd = db.select("bookings", "start_date", "id", booking_id);
-                List<String> ed = db.select("bookings", "finish_date", "id", booking_id);
-                LocalDate startDate = LocalDate.parse(sd.get(0));
-                LocalDate endDate = LocalDate.parse(ed.get(0));
+                List<String> s_d = db.select("bookings", "start_date", "id", booking_id);
+                List<String> e_d = db.select("bookings", "finish_date", "id", booking_id);
+                LocalDate startDate = LocalDate.parse(s_d.get(0));
+                LocalDate endDate = LocalDate.parse(e_d.get(0));
                 // Create a list to store all the dates between start_date and finish_date
                 List<String> allDates = new ArrayList<>();
                 // Loop from start_date to finish_date and add each date to the list

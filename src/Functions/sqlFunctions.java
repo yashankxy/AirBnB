@@ -264,6 +264,40 @@ public class sqlFunctions {
         return availableDates;
     }
 
+	public List<String> getPrice(List<String> dates, String lid){
+		List<String> prices = new ArrayList<>();
+		String query = "SELECT price FROM availability WHERE listing_id = ? AND date IN (" + getQuestionMarks(dates.size()) + ")";
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setInt(1, Integer.parseInt(lid));
+
+			for (int i = 0; i < dates.size(); i++) {
+				stmt.setString(i + 2, dates.get(i));
+			}
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					float price = rs.getFloat("price");
+					prices.add(String.valueOf(price));
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("An error occurred while fetching prices.");
+		} 
+		return prices;
+
+	}
+
+	private String getQuestionMarks(int count) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append("?");
+        }
+        return sb.toString();
+    }
 
 // ------------------------------ UPDATE FUNCTIONS ------------------------------ //
 
