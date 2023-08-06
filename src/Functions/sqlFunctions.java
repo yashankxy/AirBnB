@@ -368,6 +368,7 @@ public class sqlFunctions {
 			}
 		}
 	}
+	
 	public ResultSet GetListingAvailability(String listing_id){
 		ResultSet rs = null;
 		try{
@@ -378,6 +379,35 @@ public class sqlFunctions {
 		}catch(Exception e){
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			return rs;
+		}
+	}
+
+	public boolean ListingAvailabilityNotEmpty(String listing_id) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM availability WHERE listing_id = %s AND date >= CURRENT_DATE() ORDER BY date";
+			query = String.format(query,listing_id);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
