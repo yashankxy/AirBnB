@@ -654,4 +654,187 @@ public class sqlFunctions {
 			return false;
 		}
 	}
+
+	public void calculate_avg_price_per_city_and_type(){
+		try{
+
+			String query = "SELECT city, type_of_listing, AVG(price) AS avg_price" +
+           				   " FROM listing" +
+            			   " INNER JOIN availability ON listing.id = availability.listing_id" +
+            			   " WHERE listed = 1" +
+                           " GROUP BY city, type_of_listing;";
+			ResultSet rs = this.stmt.executeQuery(query);
+
+			System.out.println("\n Pricing of Active Listings" );
+			System.out.printf("-------------------------------------------\n" );
+        	System.out.printf("%-15s %-15s %-15s %n",
+                	"City", "Type of Listing", "Average Price per Day");
+
+       		 while (rs.next()) {
+				String formatPattern = "%.2f";
+				String city = rs.getString("city");
+				String type_of_listing = rs.getString("type_of_listing");
+				Float avg_price = rs.getFloat("avg_price");
+
+				System.out.printf("%-15s %-15s %-15s %n",
+						city, type_of_listing, String.format(formatPattern,avg_price));
+			}
+        	System.out.printf("-------------------------------------------\n" );
+
+			query = "SELECT l.city, l.type_of_listing, "+
+				"AVG(b.pricing / DATEDIFF(b.finish_date, b.start_date)) AS avg_price_per_day "+
+	 			"FROM listing l "+
+	 			"JOIN bookings b ON l.id = b.listing_id "+
+	 			"GROUP BY l.city, l.type_of_listing;";
+			rs = this.stmt.executeQuery(query);
+
+			System.out.println("\n Pricing of Bookings" );
+			System.out.printf("-------------------------------------------\n" );
+        	System.out.printf("%-15s %-15s %-15s %n",
+                	"City", "Type of Listing", "Average Price per Day");
+
+       		 while (rs.next()) {
+				String formatPattern = "%.2f";
+				String city = rs.getString("l.city");
+				String type_of_listing = rs.getString("l.type_of_listing");
+				Float avg_price = rs.getFloat("avg_price_per_day");
+
+				System.out.printf("%-15s %-15s %-15s %n",
+						city, type_of_listing, avg_price);
+			}
+        	System.out.printf("-------------------------------------------\n" );
+			return;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return;
+		}
+	}
+
+	public void calculate_amenities_per_city_and_type(){
+		try {
+			// Calculate the average price and percentage of amenities for listed listings
+			String listedListingsQuery = "SELECT city, type_of_listing, " +
+					"SUM(wifi) * 100.0 / COUNT(DISTINCT l.id) AS wifi_percentage, " +
+					"SUM(washer) * 100.0 / COUNT(DISTINCT l.id) AS washer_percentage, " +
+					"SUM(air_conditioning) * 100.0 / COUNT(DISTINCT l.id) AS air_conditioning_percentage, " +
+					"SUM(dedicated_workspace) * 100.0 / COUNT(DISTINCT l.id) AS dedicated_workspace_percentage, " +
+					"SUM(hair_dryer) * 100.0 / COUNT(DISTINCT l.id) AS hair_dryer_percentage, " +
+					"SUM(kitchen) * 100.0 / COUNT(DISTINCT l.id) AS kitchen_percentage, " +
+					"SUM(dryer) * 100.0 / COUNT(DISTINCT l.id) AS dryer_percentage, " +
+					"SUM(heating) * 100.0 / COUNT(DISTINCT l.id) AS heating_percentage, " +
+					"SUM(tv) * 100.0 / COUNT(DISTINCT l.id) AS tv_percentage, " +
+					"SUM(iron) * 100.0 / COUNT(DISTINCT l.id) AS iron_percentage " +
+					"FROM listing l " +
+					"LEFT JOIN listing_amenities la ON l.id = la.listing_id " +
+					"WHERE listed = 1 " +
+					"GROUP BY city, type_of_listing;";
+	
+			ResultSet rsListedListings = this.stmt.executeQuery(listedListingsQuery);
+	
+			System.out.println("\nListed Listings Amenities");
+			System.out.printf("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+			System.out.printf("%-15s %-15s %-15s %-15s %-20s %-30s %-15s %-15s %-15s %-15s %-15s %-15s%n",
+					"City", "Type of Listing", "Wifi (%)", "Washer (%)", "Air Conditioning (%)",
+					"Dedicated Workspace (%)", "Hair Dryer (%)", "Kitchen (%)", "Dryer (%)", "Heating (%)",
+					"TV (%)", "Iron (%)");
+	
+			while (rsListedListings.next()) {
+				String formatPattern = "%.2f";
+				String city = rsListedListings.getString("city");
+				String type_of_listing = rsListedListings.getString("type_of_listing");
+				double wifi_percentage = rsListedListings.getDouble("wifi_percentage");
+				double washer_percentage = rsListedListings.getDouble("washer_percentage");
+				double air_conditioning_percentage = rsListedListings.getDouble("air_conditioning_percentage");
+				double dedicated_workspace_percentage = rsListedListings.getDouble("dedicated_workspace_percentage");
+				double hair_dryer_percentage = rsListedListings.getDouble("hair_dryer_percentage");
+				double kitchen_percentage = rsListedListings.getDouble("kitchen_percentage");
+				double dryer_percentage = rsListedListings.getDouble("dryer_percentage");
+				double heating_percentage = rsListedListings.getDouble("heating_percentage");
+				double tv_percentage = rsListedListings.getDouble("tv_percentage");
+				double iron_percentage = rsListedListings.getDouble("iron_percentage");
+				
+				String wifi_percentage_str = String.format(formatPattern, wifi_percentage);
+				String washer_percentage_str = String.format(formatPattern, washer_percentage);
+				String air_conditioning_percentage_str = String.format(formatPattern, air_conditioning_percentage);
+				String dedicated_workspace_percentage_str = String.format(formatPattern, dedicated_workspace_percentage);
+				String hair_dryer_percentage_str = String.format(formatPattern, hair_dryer_percentage);
+				String kitchen_percentage_str = String.format(formatPattern, kitchen_percentage);
+				String dryer_percentage_str = String.format(formatPattern, dryer_percentage);
+				String heating_percentage_str = String.format(formatPattern, heating_percentage);
+				String tv_percentage_str = String.format(formatPattern, tv_percentage);
+				String iron_percentage_str = String.format(formatPattern, iron_percentage);
+
+				System.out.printf("%-15s %-15s %-15s %-15s %-20s %-30s %-15s %-15s %-15s %-15s %-15s %-15s%n",
+					city, type_of_listing, wifi_percentage_str, washer_percentage_str, air_conditioning_percentage_str,
+					dedicated_workspace_percentage_str, hair_dryer_percentage_str, kitchen_percentage_str, dryer_percentage_str,
+					heating_percentage_str, tv_percentage_str, iron_percentage_str);
+			}
+			System.out.printf("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+	
+			// Calculate the average price and percentage of amenities for listings with bookings
+			String listingsWithBookingsQuery = "SELECT l.city, l.type_of_listing, " +
+					"SUM(la.wifi) * 100.0 / COUNT(DISTINCT l.id) AS wifi_percentage, " +
+					"SUM(la.washer) * 100.0 / COUNT(DISTINCT l.id) AS washer_percentage, " +
+					"SUM(la.air_conditioning) * 100.0 / COUNT(DISTINCT l.id) AS air_conditioning_percentage, " +
+					"SUM(la.dedicated_workspace) * 100.0 / COUNT(DISTINCT l.id) AS dedicated_workspace_percentage, " +
+					"SUM(la.hair_dryer) * 100.0 / COUNT(DISTINCT l.id) AS hair_dryer_percentage, " +
+					"SUM(la.kitchen) * 100.0 / COUNT(DISTINCT l.id) AS kitchen_percentage, " +
+					"SUM(la.dryer) * 100.0 / COUNT(DISTINCT l.id) AS dryer_percentage, " +
+					"SUM(la.heating) * 100.0 / COUNT(DISTINCT l.id) AS heating_percentage, " +
+					"SUM(la.tv) * 100.0 / COUNT(DISTINCT l.id) AS tv_percentage, " +
+					"SUM(la.iron) * 100.0 / COUNT(DISTINCT l.id) AS iron_percentage " +
+					"FROM listing l " +
+					"JOIN bookings b ON l.id = b.listing_id " +
+					"LEFT JOIN listing_amenities la ON l.id = la.listing_id " +
+					"GROUP BY l.city, l.type_of_listing;";
+	
+			rsListedListings = this.stmt.executeQuery(listingsWithBookingsQuery);
+	
+			System.out.println("\nBooked Listings Amenities");
+			System.out.printf("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+			System.out.printf("%-15s %-15s %-15s %-15s %-20s %-30s %-15s %-15s %-15s %-15s %-15s %-15s%n",
+					"City", "Type of Listing", "Wifi (%)", "Washer (%)", "Air Conditioning (%)",
+					"Dedicated Workspace (%)", "Hair Dryer (%)", "Kitchen (%)", "Dryer (%)", "Heating (%)",
+					"TV (%)", "Iron (%)");
+	
+			while (rsListedListings.next()) {
+				String formatPattern = "%.2f";
+				String city = rsListedListings.getString("city");
+				String type_of_listing = rsListedListings.getString("type_of_listing");
+				double wifi_percentage = rsListedListings.getDouble("wifi_percentage");
+				double washer_percentage = rsListedListings.getDouble("washer_percentage");
+				double air_conditioning_percentage = rsListedListings.getDouble("air_conditioning_percentage");
+				double dedicated_workspace_percentage = rsListedListings.getDouble("dedicated_workspace_percentage");
+				double hair_dryer_percentage = rsListedListings.getDouble("hair_dryer_percentage");
+				double kitchen_percentage = rsListedListings.getDouble("kitchen_percentage");
+				double dryer_percentage = rsListedListings.getDouble("dryer_percentage");
+				double heating_percentage = rsListedListings.getDouble("heating_percentage");
+				double tv_percentage = rsListedListings.getDouble("tv_percentage");
+				double iron_percentage = rsListedListings.getDouble("iron_percentage");
+				
+				String wifi_percentage_str = String.format(formatPattern, wifi_percentage);
+				String washer_percentage_str = String.format(formatPattern, washer_percentage);
+				String air_conditioning_percentage_str = String.format(formatPattern, air_conditioning_percentage);
+				String dedicated_workspace_percentage_str = String.format(formatPattern, dedicated_workspace_percentage);
+				String hair_dryer_percentage_str = String.format(formatPattern, hair_dryer_percentage);
+				String kitchen_percentage_str = String.format(formatPattern, kitchen_percentage);
+				String dryer_percentage_str = String.format(formatPattern, dryer_percentage);
+				String heating_percentage_str = String.format(formatPattern, heating_percentage);
+				String tv_percentage_str = String.format(formatPattern, tv_percentage);
+				String iron_percentage_str = String.format(formatPattern, iron_percentage);
+				
+				System.out.printf("%-15s %-15s %-15s %-15s %-20s %-30s %-15s %-15s %-15s %-15s %-15s %-15s%n",
+					city, type_of_listing, wifi_percentage_str, washer_percentage_str, air_conditioning_percentage_str,
+					dedicated_workspace_percentage_str, hair_dryer_percentage_str, kitchen_percentage_str, dryer_percentage_str,
+					heating_percentage_str, tv_percentage_str, iron_percentage_str);
+			}
+			System.out.printf("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+	
+			return;
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return;
+		}
+	}
+
 }
