@@ -729,6 +729,19 @@ public class sqlFunctions {
 			return false;
 		}
 	}
+	public boolean renterCancelBookingOne(String booking_id){
+		try{
+
+			String queryBookings = "UPDATE bookings SET status = 'renter_cancelled' "
+							+ " WHERE id = %s;";
+			queryBookings = String.format(queryBookings, booking_id);
+			Integer numCancelled = this.stmt.executeUpdate(queryBookings);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
 
 	public void calculate_avg_price_per_city_and_type(){
 		try{

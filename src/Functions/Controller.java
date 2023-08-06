@@ -1788,7 +1788,7 @@ public class Controller {
         
         // Todo: instead deleting change the status
         // Delete Booking
-        db.deletebookings("bookings", booking_id);
+        db.renterCancelBookingOne(booking_id);
 		
         System.out.println("Your Booking was Cancelled !");
     }
