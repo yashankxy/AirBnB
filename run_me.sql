@@ -128,3 +128,9 @@ CREATE TABLE bookings (
 
 INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status)
 VALUES (1, 1, '2023-08-06', '2023-08-07', 150.00, 'normal');
+
+INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status)
+VALUES (2, 1, '2023-08-16', '2023-08-17', 150.00, 'normal');
+
+INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status)
+VALUES (2, 1, '2023-08-26', '2023-08-27', 150.00, 'normal');

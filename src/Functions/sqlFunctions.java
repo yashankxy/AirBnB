@@ -385,8 +385,13 @@ public class sqlFunctions {
 			for (String date : calendar_availability){
 				String query = "INSERT INTO availability (listing_id, date, price) VALUES (%s, '%s', %s)"
 							+ "ON DUPLICATE KEY UPDATE price = %s;";
-				query = String.format(query,listingId, date, price, price);
-				this.stmt.execute(query);
+				if(InBooking(listingId, date)){
+					System.out.println(date + " already booked.");
+				}
+				else{
+					query = String.format(query,listingId, date, price, price);
+					this.stmt.execute(query);
+				}
 			}
 			return true;
 		}catch(Exception e){
@@ -533,6 +538,35 @@ public class sqlFunctions {
 		}catch(Exception e){
 			System.err.println( e.getClass().getName() + ": " + e.getMessage());
 			return false;
+		}
+	}
+
+	public boolean InBooking(String listing_id, String date) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM bookings WHERE listing_id = %s AND '%s' BETWEEN start_date AND finish_date";
+			query = String.format(query,listing_id, date);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
