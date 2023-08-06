@@ -845,6 +845,81 @@ public class Controller {
        HDshowListingAvailability(listing_id);
    }
 
+    private void HDchangeListingPricing(String listing_id) throws SQLException{
+       Boolean done = false;
+        do{
+            List<String> calendar_availability = new ArrayList<>();
+            Boolean added_date = false;
+            String startDateStr;
+            String endDateStr;
+            String price = "";
+
+            // assign dates
+            do{
+                System.out.print("Enter start date (yyyy-MM-dd): ");
+                startDateStr = sc.nextLine().trim();
+                System.out.print("Enter end date (yyyy-MM-dd): ");
+                endDateStr = sc.nextLine().trim();
+                try {
+                    if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                        LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                        if (startDate.isBefore(endDate)) {
+                            LocalDate currentDate = startDate;
+                            while (!currentDate.isAfter(endDate)) {
+                                calendar_availability.add(dateFormat.format(currentDate));
+                                currentDate = currentDate.plusDays(1);
+                            }
+                            added_date = true;
+                        } else {
+                            System.out.println("Error: Start date must be before the end date.");
+                        }
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error: Wrong Input." + e);;
+                }
+
+            } while(!added_date);
+            
+            // assign price 
+            float priceF = -1;
+            do{
+                System.out.print("Price: ");
+                price = sc.nextLine().trim().toLowerCase();
+                try {
+                    priceF = Float.parseFloat(price);
+                } catch (NumberFormatException e) {
+                    System.out.print("Please input a valid value \n");
+                    priceF = -1; // Set latitude to null if invalid number format
+                }
+            } while(priceF < 0);
+
+            if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                db.changePrice(listing_id, startDateStr, endDateStr, price);
+            }
+            System.out.println("Completed");
+            String answerContinue;
+            do{
+                System.out.println("Do you want to change more prices? \n"+
+                                "    1. Yes\n"+ "    2. No");
+                System.out.print("Select: ");
+                answerContinue = sc.nextLine().trim().toLowerCase();
+                if (answerContinue.equals("2")){
+                    done = true;
+                }
+                if (!answerContinue.equals("1") && !answerContinue.equals("2")){
+                    System.out.println("Invalid Input");
+                }
+            } while (!answerContinue.equals("1") && !answerContinue.equals("2"));
+        } while(!done);
+
+       System.out.println("Added!");
+       HDshowListingAvailability(listing_id);
+   }
+
+   
     private void HDmanageListings(String host_id) throws SQLException{
         HDshowListing(host_id);
         if(!db.ListingNotEmpty(host_id)){
@@ -893,6 +968,8 @@ public class Controller {
                         break;
                     case 3:
                         // Change price
+                        HDshowListingAvailability(selectedID);
+                        HDchangeListingPricing(selectedID);
                         break;
                     case 4:
                         // Remove listing availability;

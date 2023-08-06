@@ -507,4 +507,18 @@ public class sqlFunctions {
 			}
 		}
 	}
+
+	public boolean changePrice(String listingId, String startDate,  String endDate,String price){
+		try{
+			String query = "UPDATE availability SET price = %s "
+							+ "WHERE listing_id = %s AND date BETWEEN '%s' AND '%s';";
+			query = String.format(query, price, listingId, startDate, endDate);
+			Integer num_rows = this.stmt.executeUpdate(query);
+			System.out.println("Number of entries changed: " + num_rows);
+			return true;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
 }

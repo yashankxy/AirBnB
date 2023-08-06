@@ -53,6 +53,7 @@ CREATE TABLE listing(
     listed BOOLEAN NOT NULL DEFAULT 1,
     FOREIGN KEY (host_id) REFERENCES user (id) ON DELETE CASCADE
 );
+
 INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
 VALUES (1, 'apartment', 37.7749, -122.4194, '94105', 'San Francisco', 'United States');
 INSERT INTO listing (host_id, type_of_listing, latitude, longitude, postal_code, city, country)
