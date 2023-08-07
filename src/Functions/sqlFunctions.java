@@ -1087,4 +1087,42 @@ public class sqlFunctions {
 
 		}
 	}
+
+	public void RankRenters(int year){
+		try{
+			String startDate = year + "-01-01";
+        	String endDate = year + "-12-31";
+			String query = "SELECT renter_id, COUNT(*) AS num_bookings " +
+						"FROM bookings " +
+						"WHERE start_date  >= '" + startDate + "' AND start_date  <= '" + endDate + "' " +
+						"GROUP BY renter_id " +
+						"ORDER BY num_bookings DESC;";
+
+			ResultSet resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				int renterId = resultSet.getInt("renter_id");
+				int numBookings = resultSet.getInt("num_bookings");
+				System.out.println("Renter ID: " + renterId + ", Number of Bookings: " + numBookings);
+			}
+
+			query = "SELECT renter_id, city, COUNT(*) AS num_bookings " +
+               "FROM bookings " +
+               "INNER JOIN listing ON bookings.listing_id = listing.id " +
+               "WHERE start_date  >= '" + startDate + "' AND start_date  <= '" + endDate + "' " +
+               "GROUP BY renter_id, city " +
+               "HAVING COUNT(*) >= 2 " +
+               "ORDER BY num_bookings DESC;";
+
+			resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				int renterId = resultSet.getInt("renter_id");
+				String city = resultSet.getString("city");
+				int numBookings = resultSet.getInt("num_bookings");
+				System.out.println("Renter ID: " + renterId + ", City: " + city + ", Number of Bookings: " + numBookings);
+			}
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
 }

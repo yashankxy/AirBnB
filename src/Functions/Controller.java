@@ -146,7 +146,8 @@ public class Controller {
                             reportCommercialLiistings();
                             break;
                         case 6:
-                            // Host Toolkit
+                            // Rank renters
+                            reportRankRenters();
                             break;
                         case 7:
                             // View Profile
@@ -2054,5 +2055,24 @@ public class Controller {
 
     private void reportCommercialLiistings(){
         db.CommercialListings();
+    }
+
+    private void reportRankRenters(){
+        System.out.print("Enter the year: ");
+        int year = 0;
+        while (true) {
+            try {
+                year = Integer.parseInt(sc.nextLine());
+                if (year >= 1000 && year <= 9999) {
+                    // The year is valid, break the loop
+                    break;
+                } else {
+                    System.out.println("Invalid year. Please enter a four-digit year.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid four-digit year.");
+            }
+        }
+        db.RankRenters(year);
     }
 }
