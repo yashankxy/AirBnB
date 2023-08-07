@@ -1011,4 +1011,48 @@ public class sqlFunctions {
 
 		}
 	}
+
+	public void RankHosts(){
+		try{
+			String overallRankQuery = "SELECT host_id, country, COUNT(*) AS total_listings " + 
+									" FROM listing GROUP BY host_id, country ORDER BY total_listings DESC";
+            System.out.println("\nHost Rank by Total Listings Overall per Country:");
+			ResultSet resultSet = this.stmt.executeQuery(overallRankQuery);
+
+			while (resultSet.next()) {
+                int hostId = resultSet.getInt("host_id");
+                String country = resultSet.getString("country");
+                int totalListings = resultSet.getInt("total_listings");
+
+                String result = "Country: " + country + " , Host ID: " + hostId ;
+                result += ", Total Listings: " + totalListings;
+
+                System.out.println(result);
+            }
+
+            // Rank hosts by the total number of listings they have per city
+            String cityRankQuery = "SELECT host_id, country, city, COUNT(*) AS total_listings FROM "  + 
+								 " listing GROUP BY host_id, country, city ORDER BY total_listings DESC";
+            System.out.println("\nHost Rank by Total Listings per City:");
+			resultSet = this.stmt.executeQuery(cityRankQuery);
+
+			while (resultSet.next()) {
+                int hostId = resultSet.getInt("host_id");
+                String country = resultSet.getString("country");
+                String city = resultSet.getString("city"); // If city column exists in the listing table
+                int totalListings = resultSet.getInt("total_listings");
+
+                String result = "Country: " + country ;
+                if (city != null) {
+                    result += ", City: " + city;
+                }
+                result += " , Host ID: " + hostId + ", Total Listings: " + totalListings;
+
+                System.out.println(result);
+            }
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
 }

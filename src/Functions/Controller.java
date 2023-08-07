@@ -138,7 +138,8 @@ public class Controller {
                             reportTotalListing();
                             break;
                         case 4:
-                            // Manage Listings;
+                            // Rank hosts
+                            reportRankHosts();
                             break;
                         case 5:
                             // rateBookings();
@@ -2044,5 +2045,9 @@ public class Controller {
 
     private void reportTotalListing(){
         db.TotalListing();
+    }
+
+    private void reportRankHosts(){
+        db.RankHosts();
     }
 }
