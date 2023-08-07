@@ -1055,4 +1055,36 @@ public class sqlFunctions {
 
 		}
 	}
+
+	public void CommercialListings(){
+		try{
+			String query = "SELECT l.city, l.country, l.host_id, COUNT(l.id) AS total_listings, (COUNT(l.id) / t.total_listings * 100) AS percentage " +
+							"FROM listing AS l " +
+							"JOIN (SELECT city, country, COUNT(id) AS total_listings " +
+									"FROM listing WHERE listed = 1 " +
+									"GROUP BY city, country) AS t " +
+							"ON l.city = t.city AND l.country = t.country WHERE l.listed = 1 " +
+							"GROUP BY l.city, l.country, l.host_id, t.total_listings " +
+							"HAVING (COUNT(l.id) / t.total_listings * 100) > 10";
+
+			System.out.println("Hosts with More Than 10% Listings per City and Country:");
+			ResultSet resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				String city = resultSet.getString("city");
+				String country = resultSet.getString("country");
+				int hostId = resultSet.getInt("host_id");
+				int totalListings = resultSet.getInt("total_listings");
+				double percentage = resultSet.getDouble("percentage");
+
+				System.out.print("City: " + city);
+				System.out.print(", Country: " + country);
+				System.out.print(", Host ID: " + hostId);
+				System.out.print(", Total Listings: " + totalListings);
+				System.out.println(", Percentage: " + percentage);
+			}
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
 }

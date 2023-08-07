@@ -142,7 +142,8 @@ public class Controller {
                             reportRankHosts();
                             break;
                         case 5:
-                            // rateBookings();
+                            // Report Commercial listings
+                            reportCommercialLiistings();
                             break;
                         case 6:
                             // Host Toolkit
@@ -2049,5 +2050,9 @@ public class Controller {
 
     private void reportRankHosts(){
         db.RankHosts();
+    }
+
+    private void reportCommercialLiistings(){
+        db.CommercialListings();
     }
 }
