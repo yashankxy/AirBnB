@@ -72,7 +72,12 @@ CREATE TABLE bookings (
     start_date Date NOT NULL,
     finish_date Date NOT NULL,
     pricing DOUBLE NOT NULL DEFAULT 0,
-
+    `renter_comment_listing` varchar(3000),
+    `renter_comment_host` varchar(3000),
+    `host_comment_renter` varchar(3000),
+    `listing_rating` varchar(5),
+    `host_rating` varchar(5),
+    `renter_rating` varchar(5),
     status ENUM('host_cancelled', 'renter_cancelled', 'normal') 
         NOT NULL DEFAULT 'normal',
     FOREIGN KEY (listing_id) REFERENCES listing (id),

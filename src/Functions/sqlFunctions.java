@@ -231,7 +231,7 @@ public class sqlFunctions {
         return result;
     }
 
-public List<String> select1(String listingId) throws SQLException {
+	public List<String> select1(String listingId) throws SQLException {
         List<String> listingDetails = new ArrayList<>();
 			String sql = "SELECT * FROM listing WHERE id = " + listingId;
 
@@ -263,6 +263,29 @@ public List<String> select1(String listingId) throws SQLException {
                 return rs.next(); // If there is a match, rs.next() will return true; otherwise, it will return false.
             }
         }
+    }
+
+	public int verifybooking1(String booking_id) throws SQLException {
+        String getListingIdQuery = "SELECT listing_id FROM bookings WHERE id = " + booking_id;
+		ResultSet listingIdResult = stmt.executeQuery(getListingIdQuery);
+		int hostId = -1;
+		int listingId = -1;
+		if (listingIdResult.next()) {
+			listingId = listingIdResult.getInt("listing_id");
+		} else {
+			System.out.println("Booking_id not found in the bookings table.");
+			return hostId;
+		}
+
+		String getHostIdQuery = "SELECT host_id FROM listing WHERE id = " + listingId;
+		ResultSet hostIdResult = stmt.executeQuery(getHostIdQuery);
+
+		if (hostIdResult.next()) {
+			hostId = hostIdResult.getInt("host_id");
+		} else {
+			System.out.println("No matching host_id found in the listing table for the given booking_id.");
+		}
+        return hostId;
     }
 
 	public List<String> getAvailableDates(int listingId) {
@@ -416,6 +439,21 @@ public List<String> select1(String listingId) throws SQLException {
 		}
 	}
 
+	public boolean updateBooking(String col, String val, String booking_id) throws SQLException{
+		String updateQuery = "UPDATE bookings SET %s = ? WHERE id = ?";
+		updateQuery = String.format(updateQuery, col);
+
+		PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+		preparedStatement.setString(1, val);
+		preparedStatement.setString(2, booking_id);
+		
+		int rowsUpdated = preparedStatement.executeUpdate();
+
+		preparedStatement.close();
+
+		return rowsUpdated > 0;
+       
+	}
 
 // ------------------------------ DELETE FUNCTIONS ------------------------------ //
 

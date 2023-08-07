@@ -204,6 +204,7 @@ public class Controller {
             System.out.println("\nWelcome " + user.getName());
             renterDashboard(email);
         } else { // Host dashboard
+            this.id = Integer.valueOf(userDetails.get(0));
             user = new Host(userDetails.get(0), userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6));
             System.out.println("\nWelcome " + user.getName());
             hostDashboard(email);
@@ -480,9 +481,10 @@ public class Controller {
                                 "        4. Manage Listings\n"+
                                 "        5. Cancel Bookings\n"+
                                 "        6. Host Toolkit\n"+
-                                "        7. View Profile\n"+
-                                "        8. Delete Profile\n"+
-                                "        9. Logout \n");
+                                "        7. Rate my Renters\n"+
+                                "        8. View Profile\n"+
+                                "        9. Delete Profile\n"+
+                                "        10. Logout \n");
                 System.out.print("Select: ");
                 val = sc.nextLine();
                 try {
@@ -516,16 +518,21 @@ public class Controller {
                             hostDashboard(email);
                             break;
                         case 7:
+                            // Rate my Renters
+                            rateRenters(host_id);
+                            hostDashboard(email);
+                            break;
+                        case 8:
                             // View Profile
                             viewProfileHost(email);
                             hostDashboard(email);
                             break;
-                        case 8:
+                        case 9:
                             // Delete Profile
                             deleteHost(host_id);
                             Menu();
                             break;
-                        case 9:
+                        case 10:
                             // Logout
                             Menu();
                             break;
@@ -551,6 +558,8 @@ public class Controller {
         return true;
     }
     
+    
+
     private boolean renterDashboard(String email) throws SQLException, InterruptedException, ParseException{
         System.out.println("\nWelcome to the Renter Dashboard");
         String renter_id = db.getIdFromEmail(email);
@@ -563,7 +572,7 @@ public class Controller {
                                 "        2. Make Booking\n"+
                                 "        3. Cancel Booking\n"+
                                 "        4. Search Listings\n"+
-                                "        5. Rate my Bookings\n"+
+                                "        5. Rate my Bookings and Host\n"+
                                 "        6. View Profile\n"+
                                 "        7. Delete User \n"+
                                 "        8. Logout\n");
@@ -588,7 +597,7 @@ public class Controller {
                             renterDashboard(email);
                             break;
                         case 5:
-                            // rateBookings();
+                            rateBookings();
                             renterDashboard(email);
                             break;
                         case 6:
@@ -1350,7 +1359,6 @@ public class Controller {
         }
     }
     
-    // Todo: Add sql queries
     private void search(String search) throws SQLException, InterruptedException, ParseException {
 		String[] val;
 		String[] dates = new String[2];
@@ -1939,10 +1947,173 @@ public class Controller {
     }
 
 
-    private void rateBookings() {
+
+
+    //_________________________ Ratings __________________________ \\
+
+    private void rateRenters(String host_id) throws SQLException {
+        String booking_id;
+        String rating;
+        String review;
+        int check;
+        System.out.println("this.id=" + this.id);
+        do {
+            System.out.print("Enter the Booking id with the Renter: ");
+            booking_id = sc.nextLine().trim();
+            if (this.id != db.verifybooking1(booking_id)){
+                System.out.println("Invalid booking number");
+            }
+        } while (this.id != db.verifybooking1(booking_id));
+
+        System.out.println("1. Comment On Renter");
+        System.out.println("2. Rate Renter");
+    
+        check = sc.nextInt();
+        if(check == 1 ) {
+            commentRenter(booking_id);
+        }
+        else if(check == 2 ) {
+            rateRenter(booking_id);
+        }else{
+            System.out.println("Invalid Input");
+            return;
+        }
+
+        System.out.println("Your Rating was Submitted !");
+
     }
 
+    private void rateBookings() throws SQLException {
+
+        String booking_id;
+        String rating;
+        String review;
+        int check;
+        // Get Booking Id
+        do {
+            System.out.print("Enter booking number to rate: ");
+            booking_id = sc.nextLine().trim();
+            if (!db.verifybooking(booking_id, this.id)){
+                System.out.println("Invalid booking number");
+            }
+        } while (!db.verifybooking(booking_id, this.id));
+
+        System.out.println("1. Comment On Listing");
+        System.out.println("2. Rate Listing");
+        System.out.println("3. Comment On the Host");
+        System.out.println("4. Rate Host");
+    
+        check = sc.nextInt();
+        if(check == 1 ) {
+            commentListing(booking_id);
+        }
+        else if(check == 2 ) {
+            rateListing(booking_id);
+        }
+        else if(check == 3 ) {
+            commentHost(booking_id);
+        }
+        else if(check == 4 ) {
+            rateHost(booking_id);
+        }else{
+            System.out.println("Invalid Input");
+            return;
+        }
+
+        System.out.println("Your Rating was Submitted !");
+
+    }
+
+
+
+
 //______________________ Helper Functions ______________________ \\
+
+
+    private void commentListing(String booking_id) throws SQLException {
+		String comment;
+		System.out.println("Enter your comment for the listing");
+		sc.nextLine();
+		comment = sc.nextLine();
+		
+		db.updateBooking("renter_comment_listing", comment, booking_id);
+    }
+    private void rateListing(String booking_id) throws SQLException {
+        int comment;
+		do
+		{
+            try {
+                System.out.println("Enter your Rating for the listing");
+                comment = sc.nextInt();
+                if (comment < 0 || comment > 5) {
+                    System.out.println("Rating should be between 0-5");
+                }
+            } catch (Exception e) {
+                System.out.println("Rating should be a number between 0-5");
+                sc.nextLine(); // Consume the invalid input to avoid infinite loop
+                comment = -1;
+            }
+		}while(comment < 0 || comment > 5);
+		
+        db.updateBooking("listing_rating", Integer.toString(comment), booking_id);
+	}
+    private void commentHost(String booking_id) throws SQLException {
+        String comment;
+		System.out.println("Enter your comment for the Host");
+		sc.nextLine().trim();
+		comment = sc.nextLine().trim();
+		
+        db.updateBooking("renter_comment_host", comment, booking_id);
+	}
+    private void rateHost(String booking_id) throws SQLException {
+        int comment;
+		do
+		{
+            try {
+                System.out.println("Enter your Rating for the Host");
+                comment = sc.nextInt();
+                if (comment < 0 || comment > 5) {
+                    System.out.println("Rating should be between 0-5");
+                }
+            } catch (Exception e) {
+                System.out.println("Rating should be a number between 0-5");
+                sc.nextLine(); // Consume the invalid input to avoid infinite loop
+                comment = -1;
+            }
+		}while(comment < 0 || comment > 5);
+		
+        db.updateBooking("host_rating", Integer.toString(comment), booking_id);
+		// db.update("booking", new String[] {"booking_num"}, new String[] {bookingNum}, new String[] {"renter_rating"} , new String[] {String.valueOf(comment)});
+	}
+
+    private void commentRenter(String booking_id) throws SQLException {
+		String comment;
+		System.out.println("Enter your comment for the Renter");
+		sc.nextLine();
+		comment = sc.nextLine();
+		
+		db.updateBooking("renter_rating", comment, booking_id);
+    }
+
+    private void rateRenter(String booking_id) throws SQLException {
+        int comment;
+		do
+		{
+            try {
+                System.out.println("Enter your Rating for the Renter");
+                comment = sc.nextInt();
+                if (comment < 0 || comment > 5) {
+                    System.out.println("Rating should be between 0-5");
+                }
+            } catch (Exception e) {
+                System.out.println("Rating should be a number between 0-5");
+                sc.nextLine(); // Consume the invalid input to avoid infinite loop
+                comment = -1;
+            }
+		}while(comment < 0 || comment > 5);
+		
+        db.updateBooking("host_comment_renter", Integer.toString(comment), booking_id);
+	}
 
 
     public static double haversine(double lat1, double lon1, double lat2, double lon2) {
