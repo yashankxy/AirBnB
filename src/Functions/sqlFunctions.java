@@ -199,7 +199,7 @@ public class sqlFunctions {
 	/** Get CC details */
 	public List<String> getcc(int uid){
 		List<String> info = new ArrayList<String>();
-		String query = "SELECT * FROM cc WHERE id = '%s'";
+		String query = "SELECT * FROM cc WHERE uid = '%s'";
 		query = String.format(query, uid);
 		try{
 			ResultSet rs = stmt.executeQuery(query);

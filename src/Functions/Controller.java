@@ -131,7 +131,7 @@ public class Controller {
                     choice = Integer.parseInt(val);
                     switch (choice) { 
                         case 1:
-                            break;
+                            return;
                         case 2:
                             // Total Number of Bookings
                             reportTotalBookings();
@@ -492,7 +492,7 @@ public class Controller {
                     choice = Integer.parseInt(val);
                     switch (choice) { 
                         case 1:
-                            break;
+                            return true;
                         case 2:
                             // Add Listing;
                             HDashAddListing(host_id);
@@ -583,7 +583,7 @@ public class Controller {
                     choice = Integer.parseInt(val);
                     switch (choice) { 
                         case 1:
-                            break;
+                            return true;
                         case 2:
                             HDshowListinALL();
                             makeBooking();
@@ -1220,7 +1220,7 @@ public class Controller {
                 choice = Integer.parseInt(val);
                 switch (choice) { 
                     case 1:
-                        break;
+                        return;
                     case 2:
                         // Add availability and assign price;
                         HDshowListingAvailability(selectedID);
@@ -1326,7 +1326,7 @@ public class Controller {
                     switch (choice) { 
                         case 1:
                             close();
-                            break;
+                            return;
                         case 2:
                             search(val);
                             break;
