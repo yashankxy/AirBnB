@@ -265,6 +265,29 @@ public class sqlFunctions {
         }
     }
 
+	public int verifybooking1(String booking_id) throws SQLException {
+        String getListingIdQuery = "SELECT listing_id FROM bookings WHERE id = " + booking_id;
+		ResultSet listingIdResult = stmt.executeQuery(getListingIdQuery);
+		int hostId = -1;
+		int listingId = -1;
+		if (listingIdResult.next()) {
+			listingId = listingIdResult.getInt("listing_id");
+		} else {
+			System.out.println("Booking_id not found in the bookings table.");
+			return hostId;
+		}
+
+		String getHostIdQuery = "SELECT host_id FROM listing WHERE id = " + listingId;
+		ResultSet hostIdResult = stmt.executeQuery(getHostIdQuery);
+
+		if (hostIdResult.next()) {
+			hostId = hostIdResult.getInt("host_id");
+		} else {
+			System.out.println("No matching host_id found in the listing table for the given booking_id.");
+		}
+        return hostId;
+    }
+
 	public List<String> getAvailableDates(int listingId) {
         List<String> availableDates = new ArrayList<>();
         String sql = "SELECT date FROM availability WHERE listing_id = ?";
