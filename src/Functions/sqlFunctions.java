@@ -951,4 +951,64 @@ public class sqlFunctions {
 
 		}
 	}
+
+	public void TotalListing(){
+		try{
+		String totalListingsByCountryQuery = "SELECT country, COUNT(*) AS total_listings FROM listing GROUP BY country";
+		System.out.println("\nTotal listings per country:");
+		ResultSet resultSet = this.stmt.executeQuery(totalListingsByCountryQuery);
+		while (resultSet.next()) {
+			String country = resultSet.getString("country");
+
+			int totalListings = resultSet.getInt("total_listings");
+
+			String result = country;
+			result += ": " + totalListings;
+
+			System.out.println(result);
+		}
+		// Total number of listings per country and city
+		String totalListingsByCountryCityQuery = "SELECT country, city, COUNT(*) AS total_listings FROM listing GROUP BY country, city";
+		System.out.println("\nTotal listings per country and city:");
+		resultSet = this.stmt.executeQuery(totalListingsByCountryCityQuery);
+		while (resultSet.next()) {
+			String country = resultSet.getString("country");
+			String city = resultSet.getString("city");
+			int totalListings = resultSet.getInt("total_listings");
+
+			String result = country;
+			if (city != null) {
+				result += ", " + city;
+			}
+			result += ": " + totalListings;
+
+			System.out.println(result);
+		}
+		// Total number of listings per country, city, and postal code
+		String totalListingsByCountryCityPostalCodeQuery = "SELECT country, city, postal_code, COUNT(*) AS total_listings FROM listing GROUP BY country, city, postal_code";
+		System.out.println("\nTotal listings per country, city, and postal code:");
+		resultSet = this.stmt.executeQuery(totalListingsByCountryCityPostalCodeQuery);
+		while (resultSet.next()) {
+			String country = resultSet.getString("country");
+			String city = resultSet.getString("city");
+			String postalCode = resultSet.getString("postal_code");
+			int totalListings = resultSet.getInt("total_listings");
+
+			String result = country;
+			if (city != null) {
+				result += ", " + city;
+			}
+			if (postalCode != null) {
+				result += ", " + postalCode;
+			}
+			result += ": " + totalListings;
+
+			System.out.println(result);
+		}
+		resultSet = this.stmt.executeQuery(totalListingsByCountryCityPostalCodeQuery);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
 }

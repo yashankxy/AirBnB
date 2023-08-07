@@ -134,7 +134,8 @@ public class Controller {
                             reportTotalBookings();
                             break;
                         case 3:
-                            // Show listings 
+                            // Total Number of Listings
+                            reportTotalListing();
                             break;
                         case 4:
                             // Manage Listings;
@@ -149,6 +150,9 @@ public class Controller {
                             // View Profile
                             break;
                         case 8:
+                            Menu();
+                            break;
+                        case 9:
                             Menu();
                             break;
                         default:
@@ -2036,5 +2040,9 @@ public class Controller {
         } while(!added_date);
 
         db.TotalBookingsQuery(city, zip, startDateStr, endDateStr);
+    }
+
+    private void reportTotalListing(){
+        db.TotalListing();
     }
 }
