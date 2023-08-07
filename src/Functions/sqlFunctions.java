@@ -929,4 +929,26 @@ public class sqlFunctions {
 			}
 		}
 	}
+
+	public void TotalBookingsQuery(String city, String zip, String startDateStr, String endDateStr){
+		try{
+			String query = String.format(
+                "SELECT COUNT(*) AS total_bookings FROM bookings " +
+                "JOIN listing ON bookings.listing_id = listing.id " +
+                "WHERE city = '%s' AND start_date >= '%s' AND finish_date <= '%s'" +
+                (!zip.isEmpty() ? " AND postal_code = '%s'" : ""),
+                city, startDateStr, endDateStr, zip);
+
+   
+		ResultSet resultSet = this.stmt.executeQuery(query);
+		if (resultSet.next()) {
+			System.out.println("Total bookings: " + resultSet.getInt("total_bookings"));
+		}
+
+        return;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
 }
