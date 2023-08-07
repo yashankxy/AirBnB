@@ -82,6 +82,7 @@ public class Controller {
                             break;
                         case 3:
                             signup();
+                            Menu();
                             break;
                         case 4:
                             report();
@@ -227,13 +228,13 @@ public class Controller {
                     choice = Integer.parseInt(val);
                     switch (choice) {
                         case 1:
-                            break;
+                            return;
                         case 2:
                             host();
-                            break;
+                            return;
                         case 3:
                             renter();
-                            break;
+                            return;
                         default:
                             System.out.println("Invalid option");
                             break;

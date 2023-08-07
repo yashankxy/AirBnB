@@ -75,7 +75,8 @@ public class sqlFunctions {
 	/** Create a host */
 	public boolean createuser(String table, String name, String email, String password, String address, String occupation, String sin, String dob ) throws SQLException{ 
 		try{
-			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob) VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s')";
+			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob, renter)  "+
+			" VALUES ('%s', '%s','%s', '%s', '%s', %s, '%s', 0)";
 			query = String.format(query, table, name, email, password, address, occupation, sin, dob);
 			this.stmt.execute(query);
 			return true;
@@ -88,7 +89,8 @@ public class sqlFunctions {
 
 	public int createuser1(String table, String name, String email, String password, String address, String occupation, String sin, String dob) throws SQLException {
 		try {
-			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob) VALUES ('%s', '%s', '%s', '%s', '%s', %s, '%s')";
+			String query = "INSERT INTO `%s` (name, email, password, address, occupation, sin, dob, renter) "+
+						" VALUES ('%s', '%s', '%s', '%s', '%s', %s, '%s', 1)";
 			query = String.format(query, table, name, email, password, address, occupation, sin, dob);
 	
 			// Execute the insertion query and get the auto-generated keys (ID).
