@@ -1943,6 +1943,8 @@ public class Controller {
         String booking_id;
         String rating;
         String review;
+        int check;
+        // Get Booking Id
         do {
             System.out.print("Enter booking number to rate: ");
             booking_id = sc.nextLine().trim();
@@ -1950,20 +1952,91 @@ public class Controller {
                 System.out.println("Invalid booking number");
             }
         } while (!db.verifybooking(booking_id, this.id));
-        do {
-            System.out.print("Enter rating (1-5): ");
-            rating = sc.nextLine().trim();
-            if (!rating.matches("[1-5]")){
-                System.out.println("Invalid rating");
-            }
-        } while (!rating.matches("[1-5]"));
-        System.out.print("Enter review: ");
-        review = sc.nextLine().trim();
-        // db.rateBooking(booking_id, rating, review);
-        System.out.println("Booking rated successfully");
+
+        System.out.println("1. Comment On Listing");
+        System.out.println("2. Rate Listing");
+        System.out.println("3. Comment On the Host");
+        System.out.println("4. Rate Host");
+    
+        check = sc.nextInt();
+        if(check == 1 ) {
+            commentListing(booking_id);
+        }
+        else if(check == 2 ) {
+            rateListing(booking_id);
+        }
+        else if(check == 3 ) {
+            commentHost(booking_id);
+        }
+        else if(check == 4 ) {
+            rateHost(booking_id);
+        }
+
+        System.out.println("Your Rating was Submitted !");
+
     }
 
+
+
+
 //______________________ Helper Functions ______________________ \\
+
+
+    private void commentListing(String booking_id) throws SQLException {
+		String comment;
+		System.out.println("Enter your comment for the listing");
+		sc.nextLine();
+		comment = sc.nextLine();
+		
+		db.updateBooking("renter_comment_listing", comment, booking_id);
+    }
+    private void rateListing(String booking_id) throws SQLException {
+        int comment;
+		do
+		{
+            try {
+                System.out.println("Enter your Rating for the listing");
+                comment = sc.nextInt();
+                if (comment < 0 || comment > 5) {
+                    System.out.println("Rating should be between 0-5");
+                }
+            } catch (Exception e) {
+                System.out.println("Rating should be a number between 0-5");
+                sc.nextLine(); // Consume the invalid input to avoid infinite loop
+                comment = -1;
+            }
+		}while(comment < 0 || comment > 5);
+		
+        db.updateBooking("listing_rating", Integer.toString(comment), booking_id);
+	}
+    private void commentHost(String booking_id) throws SQLException {
+        String comment;
+		System.out.println("Enter your comment for the Host");
+		sc.nextLine().trim();
+		comment = sc.nextLine().trim();
+		
+        db.updateBooking("renter_comment_host", comment, booking_id);
+	}
+    private void rateHost(String booking_id) throws SQLException {
+        int comment;
+		do
+		{
+            try {
+                System.out.println("Enter your Rating for the Host");
+                comment = sc.nextInt();
+                if (comment < 0 || comment > 5) {
+                    System.out.println("Rating should be between 0-5");
+                }
+            } catch (Exception e) {
+                System.out.println("Rating should be a number between 0-5");
+                sc.nextLine(); // Consume the invalid input to avoid infinite loop
+                comment = -1;
+            }
+		}while(comment < 0 || comment > 5);
+		
+        db.updateBooking("host_rating", Integer.toString(comment), booking_id);
+		// db.update("booking", new String[] {"booking_num"}, new String[] {bookingNum}, new String[] {"renter_rating"} , new String[] {String.valueOf(comment)});
+	}
 
 
     public static double haversine(double lat1, double lon1, double lat2, double lon2) {

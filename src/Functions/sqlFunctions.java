@@ -231,7 +231,7 @@ public class sqlFunctions {
         return result;
     }
 
-public List<String> select1(String listingId) throws SQLException {
+	public List<String> select1(String listingId) throws SQLException {
         List<String> listingDetails = new ArrayList<>();
 			String sql = "SELECT * FROM listing WHERE id = " + listingId;
 
@@ -416,6 +416,21 @@ public List<String> select1(String listingId) throws SQLException {
 		}
 	}
 
+	public boolean updateBooking(String col, String val, String booking_id) throws SQLException{
+		String updateQuery = "UPDATE bookings SET %s = ? WHERE id = ?";
+		updateQuery = String.format(updateQuery, col);
+
+		PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+		preparedStatement.setString(1, val);
+		preparedStatement.setString(2, booking_id);
+		
+		int rowsUpdated = preparedStatement.executeUpdate();
+
+		preparedStatement.close();
+
+		return rowsUpdated > 0;
+       
+	}
 
 // ------------------------------ DELETE FUNCTIONS ------------------------------ //
 
