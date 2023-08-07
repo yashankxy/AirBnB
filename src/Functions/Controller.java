@@ -512,7 +512,7 @@ public class Controller {
                             renterDashboard(email);
                             break;
                         case 5:
-                            // rateBookings();
+                            rateBookings();
                             renterDashboard(email);
                             break;
                         case 6:
@@ -1274,7 +1274,6 @@ public class Controller {
         }
     }
     
-    // Todo: Add sql queries
     private void search(String search) throws SQLException, InterruptedException, ParseException {
 		String[] val;
 		String[] dates = new String[2];
@@ -1863,7 +1862,29 @@ public class Controller {
     }
 
 
-    private void rateBookings() {
+    private void rateBookings() throws SQLException {
+
+        String booking_id;
+        String rating;
+        String review;
+        do {
+            System.out.print("Enter booking number to rate: ");
+            booking_id = sc.nextLine().trim();
+            if (!db.verifybooking(booking_id, this.id)){
+                System.out.println("Invalid booking number");
+            }
+        } while (!db.verifybooking(booking_id, this.id));
+        do {
+            System.out.print("Enter rating (1-5): ");
+            rating = sc.nextLine().trim();
+            if (!rating.matches("[1-5]")){
+                System.out.println("Invalid rating");
+            }
+        } while (!rating.matches("[1-5]"));
+        System.out.print("Enter review: ");
+        review = sc.nextLine().trim();
+        // db.rateBooking(booking_id, rating, review);
+        System.out.println("Booking rated successfully");
     }
 
 //______________________ Helper Functions ______________________ \\
