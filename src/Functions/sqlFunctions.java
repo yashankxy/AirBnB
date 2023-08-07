@@ -580,7 +580,7 @@ public class sqlFunctions {
 	public ResultSet GetAllActiveListings(String host_id){
 		ResultSet rs = null;
 		try{
-			String query = "SELECT * FROM listing WHERE host_id = %s AND listed=1 ORDER BY id";
+			String query = "SELECT * FROM listing WHERE host_id = %s AND listed = 1 ORDER BY id; ";
 			query = String.format(query,host_id);
 			rs = this.stmt.executeQuery(query);
 			return rs;
@@ -812,7 +812,8 @@ public class sqlFunctions {
 	public ResultSet GetlistingBookingsAvailable(String listing_id){
 		ResultSet rs = null;
 		try{
-			String query = "SELECT * FROM bookings where listing_id = %s AND status = 'normal';";
+			String query = "SELECT * FROM bookings where listing_id = %s AND status = 'normal' "+
+			" AND finish_date > CURRENT_DATE();";
 			query = String.format(query,listing_id);
 			rs = this.stmt.executeQuery(query);
 			return rs;
