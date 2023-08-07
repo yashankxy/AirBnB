@@ -18,9 +18,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 
 import Users.Host;
@@ -798,6 +800,7 @@ public class Controller {
 
     private void HDshowListinALL() throws SQLException{
         ResultSet rs = db.GetEveryActiveListings();
+        System.out.println(rs.toString());
         System.out.printf("-----------------------------------------------------------" +
         "-----------------------------------------------------------\n" );
         System.out.printf("%-4s %-15s %-10s %-10s %-10s %-25s %-20s %-15s %-10s%n",
@@ -1229,8 +1232,7 @@ public class Controller {
                                 "        3. Latitude Longitude\n"+
                                 "        4. Postal code\n"+
                                 "        5. City\n"+
-                                "        6. Price\n"+
-                                "        7. Logout \n");
+                                "        6. Logout \n");
                 System.out.print("Select: ");
                 val = sc.nextLine();
                 try {
@@ -1252,9 +1254,6 @@ public class Controller {
                             search(val);
                             break;
                         case 6:
-                            search(val);
-                            break;
-                        case 7:
                             System.out.println("\nLogging out...");
                             Thread.sleep(1000);
                             user = null;
@@ -1276,7 +1275,7 @@ public class Controller {
     }
     
     // Todo: Add sql queries
-    private void search(String search) {
+    private void search(String search) throws SQLException, InterruptedException, ParseException {
 		String[] val;
 		String[] dates = new String[2];
         LocalDate enteredStartDate;
@@ -1287,7 +1286,10 @@ public class Controller {
         
 		List<String> col = new ArrayList<String>();
 		List<String> col_val = new ArrayList<String>();
-		
+        
+        List<String> semi_final_lids = new ArrayList<String>();
+        List<String> final_lids = new ArrayList<String>();
+        boolean check_lat_long = false;
 
         /**Case 1: Type of Listing
          * val[0] = Type of Listing
@@ -1296,9 +1298,9 @@ public class Controller {
             val = new String[1];
             do {
                 System.out.println("Enter type of listing: ");
-                System.out.println("1. Entire home/apt");
-                System.out.println("2. Private room");
-                System.out.println("3. Shared room");
+                System.out.println("1. Full House");
+                System.out.println("2. Apartment");
+                System.out.println("3. Room");
                 val[0] = sc.nextLine().trim();
                 if (val[0].equals("1") || val[0].equals("2") || val[0].equals("3")) {
                     break;
@@ -1307,6 +1309,15 @@ public class Controller {
                     System.out.println("Invalid type of listing");
                 }
             } while (true);
+            String type_of_listing;
+            if (val[0].equals("1")){
+                type_of_listing = "full house";
+            }else if(val[0].equals("2")){
+                type_of_listing = "apartment";
+            }else{
+                type_of_listing = "room";
+            }         
+            semi_final_lids = db.select("listing", "id", "type_of_listing", type_of_listing); 
         }
         /**
          * Case 3: Latitude, Longitude and Distance
@@ -1316,7 +1327,8 @@ public class Controller {
          * val[2] = Distance
          */
 		else if(search.equals("3")) { // Latitude and Longitude
-			val = new String[3];
+			
+            val = new String[3];
 
             do { // get lat
                 System.out.print("Enter latitude: ");
@@ -1354,7 +1366,10 @@ public class Controller {
                     System.out.println("Invalid distance");
                 }
 			} while (true);
-		} 
+            
+            check_lat_long = true;
+        
+        } 
         /**
          * Case 4: Postal Code
          * val[0] = Postal Code
@@ -1371,7 +1386,7 @@ public class Controller {
                     }
 				} while(true);
 
-
+            semi_final_lids = db.select("listing", "id", "postal_code", val[0]); 
 
 		} 
         /**
@@ -1389,257 +1404,308 @@ public class Controller {
                     break;
                 }
             } while(true);
+            semi_final_lids = db.select("listing", "id", "city", val[0]); 
+
         }
-	    /**
-         * Case 6: Price Range
-         * val[0] = Minimum Price
-         * val[1] = Maximum Price
-         */
+	    
 		else{
-            val = new String[2];
-            do{
-                System.out.print("Enter minimum price: ");
-                val[0] = sc.nextLine().trim();
-                try{
-                    Double.parseDouble(val[0]);
-                    break;
-                }catch(Exception e){
-                    System.out.println("Invalid price");
-                }
-            }while(true);
-            do{
-                System.out.print("Enter maximum price: ");
-                val[1] = sc.nextLine().trim();
-                try{
-                    Double.parseDouble(val[1]);
-                    break;
-                }catch(Exception e){
-                    System.out.println("Invalid price");
-                }
-            }while(true);
+            System.out.println("Error: Invalid Search Type");
+            searchListings();
+            return;
         }
 		
         // Dates and Amenities
+        Boolean check_dates = false;
+        Boolean check_amenities = false;
+            String temp;
+            do{
+                System.out.println("Do you want to filter dates? (y/n): ");
+                temp = sc.nextLine().trim();
 
-        String temp;
-        do{
-            System.out.println("Do you want to filter dates? (y/n): ");
-            temp = sc.nextLine().trim();
-
-            
-            if(temp.equals("n")){
-                dates[0] = "";
-                dates[1] = "";
-            }
-            else if(!temp.equals("y")){
-                System.out.println("Invalid input");
-            }
-        }while(!temp.equals("y") && !temp.equals("n"));
-        
-        if(temp.equals("y")){
-                System.out.println("\nFilter DATES\n");
-                do{            // --- Start Date
-                    System.out.println("Enter start date (dd/mm/yyyy): ");
-                    dates[0] = sc.nextLine().trim();
-                    try{
-                        LocalDate tmr = LocalDate.now().plusDays(1);
-                        enteredStartDate = LocalDate.parse(dates[0], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                        
-                        if (enteredStartDate.isBefore(tmr)) {
-                            System.out.println("Start date should be after the present date.");
+                
+                if(temp.equals("n")){
+                    dates[0] = "";
+                    dates[1] = "";
+                }
+                else if(!temp.equals("y")){
+                    System.out.println("Invalid input");
+                }
+            }while(!temp.equals("y") && !temp.equals("n"));
+            if(temp.equals("y")){
+                    System.out.println("\nFilter DATES\n");
+                    do{            // --- Start Date
+                        System.out.println("Enter start date (yyyy/mm/dd): ");
+                        dates[0] = sc.nextLine().trim();
+                        try{
+                            LocalDate tmr = LocalDate.now().plusDays(1);
+                            enteredStartDate = LocalDate.parse(dates[0], DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+                            
+                            if (enteredStartDate.isBefore(tmr)) {
+                                System.out.println("Start date should be after the present date.");
+                            }
+                            else{ 
+                                check_dates = true;
+                                break;
+                            }
+                        }catch(Exception e){
+                            System.out.println("Invalid date format");
                         }
-                        else{ break;}
+                    }while(true);
+                    do{            // --- End Date
+                    System.out.println("Enter end date (yyyy/mm/dd): ");
+                    dates[1] = sc.nextLine().trim();
+                    try{
+                        LocalDate enteredEndDate = LocalDate.parse(dates[1], DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        
+                        if (enteredEndDate.isBefore(enteredStartDate)) {
+                            System.out.println("End date should be after the start date.");
+                        }else{break;}
                     }catch(Exception e){
                         System.out.println("Invalid date format");
                     }
+                    // Check other things
                 }while(true);
-                do{            // --- End Date
-                System.out.println("Enter end date (dd/mm/yyyy): ");
-                dates[1] = sc.nextLine().trim();
-                try{
-                    LocalDate enteredEndDate = LocalDate.parse(dates[1], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-    
-                    if (enteredEndDate.isBefore(enteredStartDate)) {
-                        System.out.println("End date should be after the start date.");
-                    }else{break;}
-                }catch(Exception e){
-                    System.out.println("Invalid date format");
                 }
-                // Check other things
-            }while(true);
+            if(dates[0].equals("")) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+                LocalDate today = LocalDate.now();
+                dates[0] = formatter.format(today);
+                dates[1] = "";
             }
-      
-        if(dates[0].equals("")) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-            LocalDate today = LocalDate.now();
-			dates[0] = formatter.format(today);
-			dates[1] = "";
-		}
-        
+            
 
-        do{
-            System.out.println("Do you want to filter amenities? (y/n): ");
-            temp = sc.nextLine().trim();
-        }while(!temp.equals("y") && !temp.equals("n"));
+            do{
+                System.out.println("Do you want to filter amenities? (y/n): ");
+                temp = sc.nextLine().trim();
+                if (temp.equals("y")) {
+                    check_amenities = true;
+                }
+            }while(!temp.equals("y") && !temp.equals("n"));
+            List<String> amenities_y = new ArrayList<>();
+            if(temp.equals("y")){
+                System.out.println("\nFilter AMENITIES\n");
+                /*
+                    wifi BOOLEAN NOT NULL DEFAULT 0,
+                    washer BOOLEAN NOT NULL DEFAULT 0,
+                    air_conditioning BOOLEAN NOT NULL DEFAULT 0,
+                    dedicated_workspace BOOLEAN NOT NULL DEFAULT 0,
+                    hair_dryer BOOLEAN NOT NULL DEFAULT 0,
+                    kitchen BOOLEAN NOT NULL DEFAULT 0,
+                    dryer BOOLEAN NOT NULL DEFAULT 0,
+                    heating BOOLEAN NOT NULL DEFAULT 0,
+                    tv BOOLEAN NOT NULL DEFAULT 0,
+                    iron BOOLEAN NOT NULL DEFAULT 0,
+                */
+                do {
+                    System.out.print("wifi Included? (y/n or leave blank): ");
+                    amenities[0] = sc.nextLine().trim();
+                    if(amenities[0].equals("")) {
+                        break;
+                    }
+                    if(!amenities[0].equalsIgnoreCase("y") && !amenities[0].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("wifi");
+                        col_val.add(amenities[0]);
+                    }
+                } while(!amenities[0].equalsIgnoreCase("y") && !amenities[0].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("washer Included? (y/n or leave blank): ");
+                    amenities[1] = sc.nextLine().trim();
+                    if(amenities[1].equals("")) {
+                        break;
+                    }
+                    if(!amenities[1].equalsIgnoreCase("y") && !amenities[1].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("washer");
+                        col_val.add(amenities[1]);
+                    }
+                } while(!amenities[1].equalsIgnoreCase("y") && !amenities[1].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("air_conditioning Included? (y/n or leave blank): ");
+                    amenities[2] = sc.nextLine().trim();
+                    if(amenities[2].equals("")) {
+                        break;
+                    }
+                    if(!amenities[2].equalsIgnoreCase("y") && !amenities[2].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("air_conditioning");
+                        col_val.add(amenities[2]);
+                    }
+                } while(!amenities[2].equalsIgnoreCase("y") && !amenities[2].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("dedicated_workspace Included? (y/n or leave blank): ");
+                    amenities[3] = sc.nextLine().trim();
+                    if(amenities[3].equals("")) {
+                        break;
+                    }
+                    if(!amenities[3].equalsIgnoreCase("y") && !amenities[3].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("dedicated_workspace");
+                        col_val.add(amenities[3]);
+                    }
+                } while(!amenities[3].equalsIgnoreCase("y") && !amenities[3].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("hair_dryer Included? (y/n or leave blank): ");
+                    amenities[4] = sc.nextLine().trim();
+                    if(amenities[4].equals("")) {
+                        break;
+                    }
+                    if(!amenities[4].equalsIgnoreCase("y") && !amenities[4].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("hair_dryer");
+                        col_val.add(amenities[4]);
+                    }
+                } while(!amenities[4].equalsIgnoreCase("y") && !amenities[4].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("kitchen Included? (y/n or leave blank): ");
+                    amenities[5] = sc.nextLine().trim();
+                    if(amenities[5].equals("")) {
+                        break;
+                    }
+                    if(!amenities[5].equalsIgnoreCase("y") && !amenities[5].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("kitchen");
+                        col_val.add(amenities[5]);
+                    }
+                } while(!amenities[5].equalsIgnoreCase("y") && !amenities[5].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("dryer Included? (y/n or leave blank): ");
+                    amenities[6] = sc.nextLine().trim();
+                    if(amenities[6].equals("")) {
+                        break;
+                    }
+                    if(!amenities[6].equalsIgnoreCase("y") && !amenities[6].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("dryer");
+                        col_val.add(amenities[6]);
+                    }
+                } while(!amenities[6].equalsIgnoreCase("y") && !amenities[6].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("heating Included? (y/n or leave blank): ");
+                    amenities[7] = sc.nextLine().trim();
+                    if(amenities[7].equals("")) {
+                        break;
+                    }
+                    if(!amenities[7].equalsIgnoreCase("y") && !amenities[7].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("heating");
+                        col_val.add(amenities[7]);
+                    }
+                } while(!amenities[7].equalsIgnoreCase("y") && !amenities[7].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("tv Included? (y/n or leave blank): ");
+                    amenities[8] = sc.nextLine().trim();
+                    if(amenities[8].equals("")) {
+                        break;
+                    }
+                    if(!amenities[8].equalsIgnoreCase("y") && !amenities[8].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("tv");
+                        col_val.add(amenities[8]);
+                    }
+                } while(!amenities[8].equalsIgnoreCase("y") && !amenities[8].equalsIgnoreCase("n"));
+                do {
+                    System.out.print("iron Included? (y/n or leave blank): ");
+                    amenities[9] = sc.nextLine().trim();
+                    if(amenities[9].equals("")) {
+                        break;
+                    }
+                    if(!amenities[9].equalsIgnoreCase("y") && !amenities[9].equalsIgnoreCase("n")) {
+                        System.out.println("Invalid entry");
+                    } else {
+                        col.add("iron");
+                        col_val.add(amenities[9]);
+                    }
+                } while(!amenities[9].equalsIgnoreCase("y") && !amenities[9].equalsIgnoreCase("n"));
+            }
+            else{
+                amenities_y = null;
+            }
         
-        if(temp.equals("y")){
-            System.out.println("\nFilter AMENITIES\n");
-            // Todo: add all amenities
-            /*
-                wifi BOOLEAN NOT NULL DEFAULT 0,
-                washer BOOLEAN NOT NULL DEFAULT 0,
-                air_conditioning BOOLEAN NOT NULL DEFAULT 0,
-                dedicated_workspace BOOLEAN NOT NULL DEFAULT 0,
-                hair_dryer BOOLEAN NOT NULL DEFAULT 0,
-                kitchen BOOLEAN NOT NULL DEFAULT 0,
-                dryer BOOLEAN NOT NULL DEFAULT 0,
-                heating BOOLEAN NOT NULL DEFAULT 0,
-                tv BOOLEAN NOT NULL DEFAULT 0,
-                iron BOOLEAN NOT NULL DEFAULT 0,
-            */
-            do {
-                System.out.print("wifi Included? (y/n or leave blank): ");
-                amenities[0] = sc.nextLine().trim();
-                if(amenities[0].equals("")) {
-                    break;
-                }
-                if(!amenities[0].equalsIgnoreCase("y") && !amenities[0].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("wifi");
-                    col_val.add(amenities[0]);
-                }
-            } while(!amenities[0].equalsIgnoreCase("y") && !amenities[0].equalsIgnoreCase("n"));
-            do {
-                System.out.print("washer Included? (y/n or leave blank): ");
-                amenities[1] = sc.nextLine().trim();
-                if(amenities[1].equals("")) {
-                    break;
-                }
-                if(!amenities[1].equalsIgnoreCase("y") && !amenities[1].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("washer");
-                    col_val.add(amenities[1]);
-                }
-            } while(!amenities[1].equalsIgnoreCase("y") && !amenities[1].equalsIgnoreCase("n"));
-            do {
-                System.out.print("air_conditioning Included? (y/n or leave blank): ");
-                amenities[2] = sc.nextLine().trim();
-                if(amenities[2].equals("")) {
-                    break;
-                }
-                if(!amenities[2].equalsIgnoreCase("y") && !amenities[2].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("air_conditioning");
-                    col_val.add(amenities[2]);
-                }
-            } while(!amenities[2].equalsIgnoreCase("y") && !amenities[2].equalsIgnoreCase("n"));
-            do {
-                System.out.print("dedicated_workspace Included? (y/n or leave blank): ");
-                amenities[3] = sc.nextLine().trim();
-                if(amenities[3].equals("")) {
-                    break;
-                }
-                if(!amenities[3].equalsIgnoreCase("y") && !amenities[3].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("dedicated_workspace");
-                    col_val.add(amenities[3]);
-                }
-            } while(!amenities[3].equalsIgnoreCase("y") && !amenities[3].equalsIgnoreCase("n"));
-            do {
-                System.out.print("hair_dryer Included? (y/n or leave blank): ");
-                amenities[4] = sc.nextLine().trim();
-                if(amenities[4].equals("")) {
-                    break;
-                }
-                if(!amenities[4].equalsIgnoreCase("y") && !amenities[4].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("hair_dryer");
-                    col_val.add(amenities[4]);
-                }
-            } while(!amenities[4].equalsIgnoreCase("y") && !amenities[4].equalsIgnoreCase("n"));
-            do {
-                System.out.print("kitchen Included? (y/n or leave blank): ");
-                amenities[5] = sc.nextLine().trim();
-                if(amenities[5].equals("")) {
-                    break;
-                }
-                if(!amenities[5].equalsIgnoreCase("y") && !amenities[5].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("kitchen");
-                    col_val.add(amenities[5]);
-                }
-            } while(!amenities[5].equalsIgnoreCase("y") && !amenities[5].equalsIgnoreCase("n"));
-            do {
-                System.out.print("dryer Included? (y/n or leave blank): ");
-                amenities[6] = sc.nextLine().trim();
-                if(amenities[6].equals("")) {
-                    break;
-                }
-                if(!amenities[6].equalsIgnoreCase("y") && !amenities[6].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("dryer");
-                    col_val.add(amenities[6]);
-                }
-            } while(!amenities[6].equalsIgnoreCase("y") && !amenities[6].equalsIgnoreCase("n"));
-            do {
-                System.out.print("heating Included? (y/n or leave blank): ");
-                amenities[7] = sc.nextLine().trim();
-                if(amenities[7].equals("")) {
-                    break;
-                }
-                if(!amenities[7].equalsIgnoreCase("y") && !amenities[7].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("heating");
-                    col_val.add(amenities[7]);
-                }
-            } while(!amenities[7].equalsIgnoreCase("y") && !amenities[7].equalsIgnoreCase("n"));
-            do {
-                System.out.print("tv Included? (y/n or leave blank): ");
-                amenities[8] = sc.nextLine().trim();
-                if(amenities[8].equals("")) {
-                    break;
-                }
-                if(!amenities[8].equalsIgnoreCase("y") && !amenities[8].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("tv");
-                    col_val.add(amenities[8]);
-                }
-            } while(!amenities[8].equalsIgnoreCase("y") && !amenities[8].equalsIgnoreCase("n"));
-            do {
-                System.out.print("iron Included? (y/n or leave blank): ");
-                amenities[9] = sc.nextLine().trim();
-                if(amenities[9].equals("")) {
-                    break;
-                }
-                if(!amenities[9].equalsIgnoreCase("y") && !amenities[9].equalsIgnoreCase("n")) {
-                    System.out.println("Invalid entry");
-                } else {
-                    col.add("iron");
-                    col_val.add(amenities[9]);
-                }
-            } while(!amenities[9].equalsIgnoreCase("y") && !amenities[9].equalsIgnoreCase("n"));
-        }
         // SQL Queries
+        // Get all the listings with following amenities and availability dates
 
+        // Extract names with "yes" and add them to the new list
+        for (int i = 0; i < col.size(); i++) {
+            if (col_val.get(i).equalsIgnoreCase("y")) {
+                amenities_y.add(col.get(i));
+            }
+        }
+        List<Integer> filtered_lid;
 
+        // Todo Add a case for when dates are not given but amenities are given
+
+        if (!check_dates && !check_amenities){ // Dates = not given and amenities = not given
+            filtered_lid = db.Getid_ActiveListings();
+        }
+        else if(!check_dates && check_amenities){
+            
+            filtered_lid = db.findListingsWithAmenities(amenities_y);
+        }
+        else{ 
+            filtered_lid = db.findListingsWithAvailability(dates[0], dates[1], amenities_y);   
+        }
         
+        Set<Integer> uniqueSet = new HashSet<>(filtered_lid);
+        List<Integer> filtered_lid_without_duplicates = new ArrayList<>(uniqueSet);
+        Set<Integer> filteredSet = new HashSet<>(filtered_lid_without_duplicates);
+
+
+        if (check_lat_long){
+            double lat = Double.parseDouble(val[0]);
+            double lon = Double.parseDouble(val[1]);
+            double distance_threshold = Double.parseDouble(val[2]);
+            double lat_1;
+            double lon_1;
+            for (int fid : filtered_lid_without_duplicates){
+                List<Float> lat_lon = new ArrayList<>();
+                lat_lon = db.getLatandLon(fid);
+                lat_1 = lat_lon.get(0);
+                lon_1 = lat_lon.get(1);
+                double distance_1 = haversine(lat, lon, lat_1, lon_1);
+                if (distance_1 <= distance_threshold) {
+                    // The current fid is inside the specified distance
+                    final_lids.add(Integer.toString(fid));
+                }
+            }
+        }else{
+            for (String lid : semi_final_lids) {
+                int lidInt = Integer.parseInt(lid);
+                if (filteredSet.contains(lidInt)) {
+                    final_lids.add(lid);
+                }
+            }
+        }
+        // Print the final list of listings
+        System.out.println("---------------------------------");
+        System.out.println("Listings found: ");
+        System.out.println("---------------------------------");
+        for(String lid : final_lids){
+
+            List<String> x = db.select1(lid);
+            System.out.println("       Listing :" +  x);
+        }
+        System.out.println("---------------------------------");
 
 	}
+
+
+
     //_________________________ Bookings _________________________ \\
    
     private void makeBooking() throws SQLException, ParseException {
         String lid;
 		do {
-			System.out.print("Enter listing number to book: ");
+			System.out.print("\nEnter listing number to book: ");
 			lid = sc.nextLine();
 		} while (!verifylisting(lid));
 
@@ -1788,14 +1854,11 @@ public class Controller {
             }
             // System.out.println(allDates);
         int x = Integer.parseInt(db.select("bookings", "listing_id", "id", booking_id).get(0));
-        // Delete Booking
-        db.deletebookings("bookings", booking_id);
-		
-        //Update Availability
-        for (String date: allDates){
-            db.insertAvailability("availability", x, date);
-        }
         
+        // Todo: instead deleting change the status
+        // Delete Booking
+        db.renterCancelBookingOne(booking_id);
+		
         System.out.println("Your Booking was Cancelled !");
     }
 
@@ -1804,6 +1867,20 @@ public class Controller {
     }
 
 //______________________ Helper Functions ______________________ \\
+
+
+    public static double haversine(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Earth's radius in kilometers
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c;
+        return distance;
+    }
+
 
     private void hostToolkitReport(){
         db.calculate_avg_price_per_city_and_type();
