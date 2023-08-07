@@ -1065,4 +1065,239 @@ public List<String> select1(String listingId) throws SQLException {
 			}
 		}
 	}
+
+	public void TotalBookingsQuery(String city, String zip, String startDateStr, String endDateStr){
+		try{
+			String query = String.format(
+                "SELECT COUNT(*) AS total_bookings FROM bookings " +
+                "JOIN listing ON bookings.listing_id = listing.id " +
+                "WHERE city = '%s' AND start_date >= '%s' AND finish_date <= '%s'" +
+                (!zip.isEmpty() ? " AND postal_code = '%s'" : ""),
+                city, startDateStr, endDateStr, zip);
+
+   
+		ResultSet resultSet = this.stmt.executeQuery(query);
+		if (resultSet.next()) {
+			System.out.println("Total bookings: " + resultSet.getInt("total_bookings"));
+		}
+
+        return;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
+
+	public void TotalListing(){
+		try{
+		String totalListingsByCountryQuery = "SELECT country, COUNT(*) AS total_listings FROM listing GROUP BY country";
+		System.out.println("\nTotal listings per country:");
+		ResultSet resultSet = this.stmt.executeQuery(totalListingsByCountryQuery);
+		while (resultSet.next()) {
+			String country = resultSet.getString("country");
+
+			int totalListings = resultSet.getInt("total_listings");
+
+			String result = country;
+			result += ": " + totalListings;
+
+			System.out.println(result);
+		}
+		// Total number of listings per country and city
+		String totalListingsByCountryCityQuery = "SELECT country, city, COUNT(*) AS total_listings FROM listing GROUP BY country, city";
+		System.out.println("\nTotal listings per country and city:");
+		resultSet = this.stmt.executeQuery(totalListingsByCountryCityQuery);
+		while (resultSet.next()) {
+			String country = resultSet.getString("country");
+			String city = resultSet.getString("city");
+			int totalListings = resultSet.getInt("total_listings");
+
+			String result = country;
+			if (city != null) {
+				result += ", " + city;
+			}
+			result += ": " + totalListings;
+
+			System.out.println(result);
+		}
+		// Total number of listings per country, city, and postal code
+		String totalListingsByCountryCityPostalCodeQuery = "SELECT country, city, postal_code, COUNT(*) AS total_listings FROM listing GROUP BY country, city, postal_code";
+		System.out.println("\nTotal listings per country, city, and postal code:");
+		resultSet = this.stmt.executeQuery(totalListingsByCountryCityPostalCodeQuery);
+		while (resultSet.next()) {
+			String country = resultSet.getString("country");
+			String city = resultSet.getString("city");
+			String postalCode = resultSet.getString("postal_code");
+			int totalListings = resultSet.getInt("total_listings");
+
+			String result = country;
+			if (city != null) {
+				result += ", " + city;
+			}
+			if (postalCode != null) {
+				result += ", " + postalCode;
+			}
+			result += ": " + totalListings;
+
+			System.out.println(result);
+		}
+		resultSet = this.stmt.executeQuery(totalListingsByCountryCityPostalCodeQuery);
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
+
+	public void RankHosts(){
+		try{
+			String overallRankQuery = "SELECT host_id, country, COUNT(*) AS total_listings " + 
+									" FROM listing GROUP BY host_id, country ORDER BY total_listings DESC";
+            System.out.println("\nHost Rank by Total Listings Overall per Country:");
+			ResultSet resultSet = this.stmt.executeQuery(overallRankQuery);
+
+			while (resultSet.next()) {
+                int hostId = resultSet.getInt("host_id");
+                String country = resultSet.getString("country");
+                int totalListings = resultSet.getInt("total_listings");
+
+                String result = "Country: " + country + " , Host ID: " + hostId ;
+                result += ", Total Listings: " + totalListings;
+
+                System.out.println(result);
+            }
+
+            // Rank hosts by the total number of listings they have per city
+            String cityRankQuery = "SELECT host_id, country, city, COUNT(*) AS total_listings FROM "  + 
+								 " listing GROUP BY host_id, country, city ORDER BY total_listings DESC";
+            System.out.println("\nHost Rank by Total Listings per City:");
+			resultSet = this.stmt.executeQuery(cityRankQuery);
+
+			while (resultSet.next()) {
+                int hostId = resultSet.getInt("host_id");
+                String country = resultSet.getString("country");
+                String city = resultSet.getString("city"); // If city column exists in the listing table
+                int totalListings = resultSet.getInt("total_listings");
+
+                String result = "Country: " + country ;
+                if (city != null) {
+                    result += ", City: " + city;
+                }
+                result += " , Host ID: " + hostId + ", Total Listings: " + totalListings;
+
+                System.out.println(result);
+            }
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
+
+	public void CommercialListings(){
+		try{
+			String query = "SELECT l.city, l.country, l.host_id, COUNT(l.id) AS total_listings, (COUNT(l.id) / t.total_listings * 100) AS percentage " +
+							"FROM listing AS l " +
+							"JOIN (SELECT city, country, COUNT(id) AS total_listings " +
+									"FROM listing WHERE listed = 1 " +
+									"GROUP BY city, country) AS t " +
+							"ON l.city = t.city AND l.country = t.country WHERE l.listed = 1 " +
+							"GROUP BY l.city, l.country, l.host_id, t.total_listings " +
+							"HAVING (COUNT(l.id) / t.total_listings * 100) > 10";
+
+			System.out.println("Hosts with More Than 10% Listings per City and Country:");
+			ResultSet resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				String city = resultSet.getString("city");
+				String country = resultSet.getString("country");
+				int hostId = resultSet.getInt("host_id");
+				int totalListings = resultSet.getInt("total_listings");
+				double percentage = resultSet.getDouble("percentage");
+
+				System.out.print("City: " + city);
+				System.out.print(", Country: " + country);
+				System.out.print(", Host ID: " + hostId);
+				System.out.print(", Total Listings: " + totalListings);
+				System.out.println(", Percentage: " + percentage);
+			}
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
+
+	public void RankRenters(int year){
+		try{
+			String startDate = year + "-01-01";
+        	String endDate = year + "-12-31";
+			String query = "SELECT renter_id, COUNT(*) AS num_bookings " +
+						"FROM bookings " +
+						"WHERE start_date  >= '" + startDate + "' AND start_date  <= '" + endDate + "' " +
+						"GROUP BY renter_id " +
+						"ORDER BY num_bookings DESC;";
+
+			ResultSet resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				int renterId = resultSet.getInt("renter_id");
+				int numBookings = resultSet.getInt("num_bookings");
+				System.out.println("Renter ID: " + renterId + ", Number of Bookings: " + numBookings);
+			}
+
+			query = "SELECT renter_id, city, COUNT(*) AS num_bookings " +
+               "FROM bookings " +
+               "INNER JOIN listing ON bookings.listing_id = listing.id " +
+               "WHERE start_date  >= '" + startDate + "' AND start_date  <= '" + endDate + "' " +
+               "GROUP BY renter_id, city " +
+               "HAVING COUNT(*) >= 2 " +
+               "ORDER BY num_bookings DESC;";
+
+			resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				int renterId = resultSet.getInt("renter_id");
+				String city = resultSet.getString("city");
+				int numBookings = resultSet.getInt("num_bookings");
+				System.out.println("Renter ID: " + renterId + ", City: " + city + ", Number of Bookings: " + numBookings);
+			}
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+
+		}
+	}
+
+	public void HighestCancelation(int year){
+		try {
+			String startDate = year + "-01-01";
+			String endDate = year + "-12-31";
+	
+			// Query to get the number of cancellations for each renter
+			String query = "SELECT renter_id, COUNT(*) AS num_cancellations " +
+						   "FROM bookings " +
+						   "WHERE status = 'renter_cancelled' AND finish_date >= '" + startDate + "' AND finish_date <= '" + endDate + "' " +
+						   "GROUP BY renter_id " +
+						   "ORDER BY num_cancellations DESC;";
+	
+			ResultSet resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				int renterId = resultSet.getInt("renter_id");
+				int numCancellations = resultSet.getInt("num_cancellations");
+				System.out.println("Renter ID: " + renterId + ", Number of Cancellations: " + numCancellations);
+			}
+	
+			// Query to get the renters with the largest number of cancellations in each city
+			query = "SELECT host_id, " +
+					"COUNT(*) AS num_cancellations " +
+					"FROM bookings b " +
+					"JOIN listing l ON b.listing_id = l.id " +
+					"WHERE b.status = 'host_cancelled' AND finish_date >= '" + startDate + "' AND finish_date <= '" + endDate + "' " +
+					"GROUP BY host_id " +
+					"ORDER BY num_cancellations DESC";
+	
+			resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				int host_id = resultSet.getInt("host_id");
+				int numCancellations = resultSet.getInt("num_cancellations");
+				System.out.println("Host ID: " + host_id + ", Number of Cancellations: " + numCancellations);
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+		}
+	}
 }

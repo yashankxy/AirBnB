@@ -68,7 +68,8 @@ public class Controller {
                 System.out.println("\n Options: \n"+
                                 "        1. Exit \n"+
                                 "        2. Login\n"+
-                                "        3. Sign-Up\n");
+                                "        3. Sign-Up\n" +
+                                "        4. Reports\n");
                 System.out.print("Select: ");
                 val = sc.nextLine();
                 try {
@@ -82,6 +83,10 @@ public class Controller {
                         case 3:
                             signup();
                             break;
+                        case 4:
+                            report();
+                            Menu();
+                            break;
                         default:
                             System.out.println("Invalid option");
                             break;
@@ -89,7 +94,8 @@ public class Controller {
                 } catch (NumberFormatException e) {
                     val = "-1";
                 }
-            } while (!val.equals("1") && !val.equals("2") && !val.equals("3"));
+            } while (!val.equals("1") && !val.equals("2") && 
+            !val.equals("3")  && !val.equals("4"));
 
             if (val.equals("1")) close();
 
@@ -102,9 +108,79 @@ public class Controller {
 
 //______________________ Authentication _______________________ \\
     
-    
-    /* Logs in User */
-    // TODO Get user info and store in memory
+    public void report() throws SQLException, InterruptedException, ParseException {
+        System.out.println("\nWelcome to Reports");
+        if (sc != null && db != null){
+            String val;
+            int choice;
+            do {
+                System.out.println("\n Options: \n"+
+                                "        1. Exit \n"+
+                                "        2. Total Number of Bookings\n"+
+                                "        3. Total Number of Listings\n"+
+                                "        4. Rank hosts\n"+
+                                "        5. Report Commercial listings\n"+
+                                "        6. Rank renters\n"+
+                                "        7. Rank cancelation\n"+
+                                "        8. Delete Profile\n"+
+                                "        9. Logout \n");
+                System.out.print("Select: ");
+                val = sc.nextLine();
+                try {
+                    choice = Integer.parseInt(val);
+                    switch (choice) { 
+                        case 1:
+                            break;
+                        case 2:
+                            // Total Number of Bookings
+                            reportTotalBookings();
+                            break;
+                        case 3:
+                            // Total Number of Listings
+                            reportTotalListing();
+                            break;
+                        case 4:
+                            // Rank hosts
+                            reportRankHosts();
+                            break;
+                        case 5:
+                            // Report Commercial listings
+                            reportCommercialLiistings();
+                            break;
+                        case 6:
+                            // Rank renters
+                            reportRankRenters();
+                            break;
+                        case 7:
+                            // Rank cancelation
+
+                            reportHighesstCancelation();
+                            break;
+                        case 8:
+                            Menu();
+                            break;
+                        case 9:
+                            Menu();
+                            break;
+                        default:
+                            System.out.println("Invalid option");
+                            break;
+                    }
+                } catch (NumberFormatException e) {
+                    val = "-1";
+                }
+            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 
+            && val.compareTo("3)") != 0 && val.compareTo("4") != 0 
+            && val.compareTo("5") != 0 && val.compareTo("6") != 0 
+            && val.compareTo("7") != 0 && val.compareTo("8") != 0 
+            && val.compareTo("9") != 0 );
+            
+            if (val.equals("1")) close();    
+            
+        }else {
+            System.out.println("\nConnection Failed");
+        }
+    }
 
     public void login() throws SQLException, InterruptedException, ParseException {
         String email, password;
@@ -2021,5 +2097,101 @@ public class Controller {
         } catch(Exception e){
 			System.err.println( e.getClass().getName() + ": " + e.getMessage());
 		}
+    }
+
+    private void reportTotalBookings(){
+        // Get user input for city or zip
+        String city = "";
+        String zip = "";
+        System.out.print("Enter City or press Enter to skip: ");
+        String inputCity = sc.nextLine().trim();
+        if (!inputCity.isEmpty()) {
+            city = inputCity;
+        } 
+        System.out.print("Enter Zip or press Enter to skip: ");
+        String inputZip = sc.nextLine().trim();
+        if (!inputZip.isEmpty()) {
+            zip = inputZip;
+        }
+    
+
+        Boolean added_date = false;
+        String startDateStr;
+        String endDateStr;
+            // assign dates
+        do{
+            System.out.print("Enter start date (yyyy-MM-dd): ");
+            startDateStr = sc.nextLine().trim();
+            System.out.print("Enter end date (yyyy-MM-dd): ");
+            endDateStr = sc.nextLine().trim();
+            try {
+                if (!startDateStr.isEmpty() && !endDateStr.isEmpty()){
+                    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    LocalDate startDate = LocalDate.parse(startDateStr, dateFormat);
+                    LocalDate endDate = LocalDate.parse(endDateStr, dateFormat);
+                    if (startDate.isBefore(endDate)) {
+                        added_date = true;
+                    } else {
+                        System.out.println("Error: Start date must be before the end date.");
+                    }
+                }
+
+            } catch (Exception e) {
+                System.out.println("Error: Wrong Input." + e);;
+            }
+
+        } while(!added_date);
+
+        db.TotalBookingsQuery(city, zip, startDateStr, endDateStr);
+    }
+
+    private void reportTotalListing(){
+        db.TotalListing();
+    }
+
+    private void reportRankHosts(){
+        db.RankHosts();
+    }
+
+    private void reportCommercialLiistings(){
+        db.CommercialListings();
+    }
+
+    private void reportRankRenters(){
+        System.out.print("Enter the year: ");
+        int year = 0;
+        while (true) {
+            try {
+                year = Integer.parseInt(sc.nextLine());
+                if (year >= 1000 && year <= 9999) {
+                    // The year is valid, break the loop
+                    break;
+                } else {
+                    System.out.println("Invalid year. Please enter a four-digit year.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid four-digit year.");
+            }
+        }
+        db.RankRenters(year);
+    }
+
+    private void reportHighesstCancelation(){
+        System.out.print("Enter the year: ");
+        int year = 0;
+        while (true) {
+            try {
+                year = Integer.parseInt(sc.nextLine());
+                if (year >= 1000 && year <= 9999) {
+                    // The year is valid, break the loop
+                    break;
+                } else {
+                    System.out.println("Invalid year. Please enter a four-digit year.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid four-digit year.");
+            }
+        }
+        db.HighestCancelation(year);
     }
 }
