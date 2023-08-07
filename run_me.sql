@@ -114,7 +114,9 @@ VALUES
     (1, CURRENT_DATE(), 12),
     (2, DATE_ADD(CURRENT_DATE(), INTERVAL 3 DAY), 31),
     (2, '2023-09-24', 12),
-    (2, '2023-09-25', 19.2);
+    (2, '2023-12-26', 12),
+    (2, '2023-12-27', 12),
+    (2, '2023-12-25', 19.2);
 
 INSERT INTO bookings (listing_id, renter_id, start_date, finish_date, pricing, status)
 VALUES 

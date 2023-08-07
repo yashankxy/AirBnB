@@ -231,6 +231,29 @@ public class sqlFunctions {
         return result;
     }
 
+public List<String> select1(String listingId) throws SQLException {
+        List<String> listingDetails = new ArrayList<>();
+			String sql = "SELECT * FROM listing WHERE id = " + listingId;
+
+            ResultSet resultSet = stmt.executeQuery(sql);
+
+            if (resultSet.next()) {
+                // Add all the values in sequence to the listingDetails list
+                listingDetails.add(resultSet.getString("type_of_listing"));
+                listingDetails.add(String.valueOf(resultSet.getFloat("latitude")));
+                listingDetails.add(String.valueOf(resultSet.getFloat("longitude")));
+                listingDetails.add(resultSet.getString("postal_code"));
+                listingDetails.add(resultSet.getString("city"));
+                listingDetails.add(resultSet.getString("country"));
+                listingDetails.add(String.valueOf(resultSet.getBoolean("listed")));
+
+                
+            } else {
+                System.out.println("Listing not found with ID: " + listingId);
+            }
+        return listingDetails;
+    }
+
 	public boolean verifybooking(String booking_id, int id2) throws SQLException {
         try (
             PreparedStatement stm = con.prepareStatement("SELECT id FROM bookings WHERE id = ? AND renter_id = ?")) {
@@ -299,11 +322,11 @@ public class sqlFunctions {
     }
 
 	public List<Integer> findListingsWithAvailability(String startDate, String endDate, List<String> amenities) {
-        List<Integer> listingIds = new ArrayList<>();
+			
+			List<Integer> listingIds = new ArrayList<>();
 
             String availabilityQuery = "SELECT listing_id FROM availability WHERE date >= '%s' AND date <= '%s'";
 			availabilityQuery = String.format(availabilityQuery, startDate, endDate);
-			System.out.println(availabilityQuery);
             try (PreparedStatement stmt = con.prepareStatement(availabilityQuery)) {
                 ResultSet availabilityResult = stmt.executeQuery();
                 while (availabilityResult.next()) {
@@ -319,8 +342,11 @@ public class sqlFunctions {
         return listingIds;
     }
 
-	private boolean hasAllAmenities(int listingId, List<String> amenities) throws SQLException {
+	public boolean hasAllAmenities(int listingId, List<String> amenities) throws SQLException {
         // Check if the listing with the given ID has all the desired amenities
+		if(amenities == null)
+			return true;
+
         String amenitiesQuery = "SELECT * FROM listing_amenities WHERE listing_id = ?";
         try (PreparedStatement stmt = con.prepareStatement(amenitiesQuery)) {
             stmt.setInt(1, listingId);
@@ -340,7 +366,43 @@ public class sqlFunctions {
         return false; // Listing not found
     }
 
-// ------------------------------ UPDATE FUNCTIONS ------------------------------ //
+
+	public List<Integer> findListingsWithAmenities(List<String> amenities_y) throws SQLException{
+		List<Integer> listingIds = new ArrayList<>();
+
+		List<Integer> filtered_lid = Getid_ActiveListings();
+
+		for(int fid : filtered_lid){
+			if (hasAllAmenities(fid, amenities_y)){
+				listingIds.add(fid);
+			}
+		} 
+		return listingIds;
+	}
+
+	public List<Float> getLatandLon(int listingId) throws SQLException{
+		List<Float> lat_lon = new ArrayList<>();
+		String sql = "SELECT latitude, longitude FROM listing WHERE id = ?";
+		PreparedStatement statement = con.prepareStatement(sql);
+		statement.setInt(1, listingId);
+
+		// Execute the query
+		ResultSet resultSet = statement.executeQuery();
+
+		// Process the results
+		if (resultSet.next()) {
+			float latitude = resultSet.getFloat("latitude");
+			float longitude = resultSet.getFloat("longitude");
+			lat_lon.add(latitude);
+			lat_lon.add(longitude);
+		} else {
+			System.out.println("Listing with ID " + listingId + " not found.");
+		}
+		return lat_lon;
+	}
+
+
+	// ------------------------------ UPDATE FUNCTIONS ------------------------------ //
 
 
 	public ResultSet updateUser(String uid, String name, String email, String pwd, String address, String occup, String sin, String dob){
@@ -485,6 +547,24 @@ public class sqlFunctions {
 		}catch(Exception e){
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 			return rs;
+		}
+	}
+
+	public List<Integer> Getid_ActiveListings(){
+		ResultSet rs = null;
+		List<Integer> result = new ArrayList<>();
+		try{
+			String query = "SELECT id FROM listing WHERE listed=1 ORDER BY id";
+			query = String.format(query);
+			rs = this.stmt.executeQuery(query);
+			while (rs.next()) {
+                    int columnValue = rs.getInt("id");
+                    result.add(columnValue);
+                }
+			return result;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return result;
 		}
 	}
 
