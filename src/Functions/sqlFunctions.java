@@ -1125,4 +1125,43 @@ public class sqlFunctions {
 
 		}
 	}
+
+	public void HighestCancelation(int year){
+		try {
+			String startDate = year + "-01-01";
+			String endDate = year + "-12-31";
+	
+			// Query to get the number of cancellations for each renter
+			String query = "SELECT renter_id, COUNT(*) AS num_cancellations " +
+						   "FROM bookings " +
+						   "WHERE status = 'renter_cancelled' AND finish_date >= '" + startDate + "' AND finish_date <= '" + endDate + "' " +
+						   "GROUP BY renter_id " +
+						   "ORDER BY num_cancellations DESC;";
+	
+			ResultSet resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				int renterId = resultSet.getInt("renter_id");
+				int numCancellations = resultSet.getInt("num_cancellations");
+				System.out.println("Renter ID: " + renterId + ", Number of Cancellations: " + numCancellations);
+			}
+	
+			// Query to get the renters with the largest number of cancellations in each city
+			query = "SELECT host_id, " +
+					"COUNT(*) AS num_cancellations " +
+					"FROM bookings b " +
+					"JOIN listing l ON b.listing_id = l.id " +
+					"WHERE b.status = 'host_cancelled' AND finish_date >= '" + startDate + "' AND finish_date <= '" + endDate + "' " +
+					"GROUP BY host_id " +
+					"ORDER BY num_cancellations DESC";
+	
+			resultSet = this.stmt.executeQuery(query);
+			while (resultSet.next()) {
+				int host_id = resultSet.getInt("host_id");
+				int numCancellations = resultSet.getInt("num_cancellations");
+				System.out.println("Host ID: " + host_id + ", Number of Cancellations: " + numCancellations);
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+		}
+	}
 }
