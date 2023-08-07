@@ -119,7 +119,10 @@ public class Controller {
         if (userDetails.get(8) == "true") { // Renter Dashboard
             id = Integer.valueOf(userDetails.get(0));
             List<String> ccdetails = db.getcc(id);
-            user = new Renter(userDetails.get(1), userDetails.get(2), userDetails.get(3), userDetails.get(4), userDetails.get(5), userDetails.get(6), userDetails.get(7), ccdetails.get(0), ccdetails.get(1), ccdetails.get(2), ccdetails.get(3));
+            user = new Renter(userDetails.get(1), userDetails.get(2), userDetails.get(3), 
+                            userDetails.get(4), userDetails.get(5), userDetails.get(6), 
+                            userDetails.get(7), ccdetails.get(0), ccdetails.get(1), ccdetails.get(2), 
+                            ccdetails.get(3));
             System.out.println("\nWelcome " + user.getName());
             renterDashboard(email);
         } else { // Host dashboard
@@ -472,6 +475,7 @@ public class Controller {
     
     private boolean renterDashboard(String email) throws SQLException, InterruptedException, ParseException{
         System.out.println("\nWelcome to the Renter Dashboard");
+        String renter_id = db.getIdFromEmail(email);
         if (sc != null && db != null){
             String val;
             int choice;
@@ -483,7 +487,8 @@ public class Controller {
                                 "        4. Search Listings\n"+
                                 "        5. Rate my Bookings\n"+
                                 "        6. View Profile\n"+
-                                "        7. Logout \n");
+                                "        7. Delete User \n"+
+                                "        8. Logout\n");
                 System.out.print("Select: ");
                 val = sc.nextLine();
                 try {
@@ -513,6 +518,12 @@ public class Controller {
                             renterDashboard(email);
                             break;
                         case 7:
+                            deleteRenter(renter_id);
+                            Thread.sleep(1000);
+                            user = null;
+                            Menu();
+                            break;
+                        case 8:
                             System.out.println("\nLogging out...");
                             Thread.sleep(1000);
                             user = null;
@@ -525,7 +536,10 @@ public class Controller {
                 } catch (NumberFormatException e) {
                     val = "-1";
                 }
-            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 && val.compareTo("3)") != 0 && val.compareTo("4") != 0 && val.compareTo("5") != 0 && val.compareTo("6") != 0 && val.compareTo("7") != 0);
+            } while (val.compareTo("1") != 0 && val.compareTo("2") != 0 
+                && val.compareTo("3)") != 0 && val.compareTo("4") != 0 
+                && val.compareTo("5") != 0 && val.compareTo("6") != 0 
+                && val.compareTo("7") != 0 && val.compareTo("8") != 0);
             if (val.equals("1")) close();    
             
         }else {
@@ -786,8 +800,9 @@ public class Controller {
         ResultSet rs = db.GetEveryActiveListings();
         System.out.printf("-----------------------------------------------------------" +
         "-----------------------------------------------------------\n" );
-        System.out.printf("%-4s %-15s %-10s %-10s %-10s %-25s %-20s%n",
-                "ID", "Type of Listing", "Latitude", "Longitude", "Postal Code", "City", "Country");
+        System.out.printf("%-4s %-15s %-10s %-10s %-10s %-25s %-20s %-15s %-10s%n",
+                "ID", "Type of Listing", "Latitude", "Longitude", "Postal Code", 
+                "City", "Country", "Date", "Price");
 
         while (rs.next()) {
             int id = rs.getInt("id");
@@ -797,9 +812,11 @@ public class Controller {
             String postalCode = rs.getString("postal_code");
             String city = rs.getString("city");
             String country = rs.getString("country");
+            String date = rs.getString("date");
+            String price = rs.getString("price");
 
-            System.out.printf("%-4d %-15s %-10.4f %-10.4f %-10s %-25s %-20s %n",
-                    id, typeOfListing, latitude, longitude, postalCode, city, country);
+            System.out.printf("%-4d %-15s %-10.4f %-10.4f %-10s %-25s %-20s %-15s %-10s%n",
+                    id, typeOfListing, latitude, longitude, postalCode, city, country, date, price);
         }
         System.out.printf("-----------------------------------------------------------" +
         "-----------------------------------------------------------\n" );
@@ -1172,6 +1189,11 @@ public class Controller {
         } while (selectedID.isEmpty());
 
         HDbookingsAvailable(selectedID); 
+
+        if(!db.BookingNotEmpty(selectedID)){
+            System.out.println("No bookings present, exiting:");
+            return;
+        }
 
         System.out.print("Select the id of the booking to cancel\n");
         String bookingID = "";
@@ -1817,7 +1839,7 @@ public class Controller {
         
         if(result) {return true;}
         
-        System.out.println("Unable to find listing, Try again!");
+        System.out.println("Unable to find listing or no available days for booking, Try again!");
         return false;
     }
 
@@ -1869,7 +1891,7 @@ public class Controller {
         return false;
     }
 
-     private Date addDays(Date date, int days) {
+    private Date addDays(Date date, int days) {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(java.util.Calendar.DAY_OF_YEAR, days);
@@ -1894,14 +1916,10 @@ public class Controller {
 		}
     }
 
-    private void deleteRenter(String host_id) throws SQLException{
+    private void deleteRenter(String renter_id) throws SQLException{
         try{
-        ResultSet rs1 = db.GetAllActiveListings(host_id);
-        while (rs1.next()) {
-            String listing_id = rs1.getString("id");
-            db.UnlistListing(listing_id);
-        }
-        db.setUserBlock(host_id);
+            db.CancelAllRenterBookings(renter_id);
+            db.setUserBlock(renter_id);
         } catch(Exception e){
 			System.err.println( e.getClass().getName() + ": " + e.getMessage());
 		}

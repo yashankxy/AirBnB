@@ -449,7 +449,11 @@ public class sqlFunctions {
 	public ResultSet GetEveryActiveListings(){
 		ResultSet rs = null;
 		try{
-			String query = "SELECT * FROM listing WHERE listed = 1 ORDER BY id";
+			String query = "SELECT l.id, l.host_id, l.type_of_listing, l.latitude, l.longitude," +
+							" l.postal_code, l.city, l.country, a.date, a.price" + //
+							" FROM listing l " + 
+							" INNER JOIN availability a ON l.id = a.listing_id" + 
+							" WHERE l.listed = 1;";
 			query = String.format(query);
 			rs = this.stmt.executeQuery(query);
 			return rs;
@@ -630,7 +634,7 @@ public class sqlFunctions {
 			Integer numAvail = this.stmt.executeUpdate(queryAvailability);
 			
 			String queryBookings = "UPDATE bookings SET status = 'host_cancelled' "
-							+ " WHERE listing_id = %s AND finish_date > CURRENT_DATE();";
+							+ " WHERE listing_id = %s AND finish_date > CURRENT_DATE() AND status = 'normal';";
 			queryBookings = String.format(queryBookings, listing_id);
 			Integer numCancelled = this.stmt.executeUpdate(queryBookings);
 
@@ -645,7 +649,7 @@ public class sqlFunctions {
 	public ResultSet GetlistingBookingsAvailable(String listing_id){
 		ResultSet rs = null;
 		try{
-			String query = "SELECT * FROM bookings where listing_id = %s AND status = 'normal'";
+			String query = "SELECT * FROM bookings where listing_id = %s AND status = 'normal';";
 			query = String.format(query,listing_id);
 			rs = this.stmt.executeQuery(query);
 			return rs;
@@ -658,7 +662,8 @@ public class sqlFunctions {
 	public boolean BookingsAvailableIsNotEmpty(String listing_id, String booking_id){
 		ResultSet rs = null;
 		try{
-			String query = "SELECT * FROM bookings where listing_id = %s AND id = %s";
+			String query = "SELECT * FROM bookings where listing_id = %s AND id = %s" 
+					+ " AND finish_date > CURRENT_DATE()";
 			query = String.format(query,listing_id, booking_id);
 			rs = this.stmt.executeQuery(query);
 			if (rs.next()) {
@@ -881,4 +886,47 @@ public class sqlFunctions {
 		}
 	}
 
+	public ResultSet CancelAllRenterBookings(String renter_id){
+		ResultSet rs = null;
+		try{
+			String query = "UPDATE bookings SET status = 'renter_cancelled' where renter_id = %s AND"+
+							" status = 'normal' AND finish_date > CURRENT_DATE();";
+			query = String.format(query,renter_id);
+			this.stmt.executeUpdate(query);
+			return rs;
+		}catch(Exception e){
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return rs;
+		}
+	}
+
+	public boolean BookingNotEmpty(String selectedID) {
+		ResultSet rs = null;
+		try {
+			String query = "SELECT * FROM bookings where listing_id = %s AND status = 'normal'" 
+					+ " AND finish_date > CURRENT_DATE();";
+			query = String.format(query, selectedID);
+			rs = this.stmt.executeQuery(query);
+			
+			// Check if the result set has any rows
+			if (rs.next()) {
+				// The result set is not empty, so return true
+				return true;
+			} else {
+				// The result set is empty, so return false
+				return false;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }
