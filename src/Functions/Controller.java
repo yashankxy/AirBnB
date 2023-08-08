@@ -94,6 +94,8 @@ public class Controller {
                     }
                 } catch (NumberFormatException e) {
                     val = "-1";
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             } while (!val.equals("1") && !val.equals("2") && 
             !val.equals("3")  && !val.equals("4"));
@@ -109,28 +111,28 @@ public class Controller {
 
 //______________________ Authentication _______________________ \\
     
-    public void report() throws SQLException, InterruptedException, ParseException {
+    public void report() throws SQLException, InterruptedException, ParseException, IOException {
         System.out.println("\nWelcome to Reports");
         if (sc != null && db != null){
             String val;
             int choice;
             do {
                 System.out.println("\n Options: \n"+
-                                "        1. Exit \n"+
+                                "        1. Menu \n"+
                                 "        2. Total Number of Bookings\n"+
                                 "        3. Total Number of Listings\n"+
                                 "        4. Rank hosts\n"+
                                 "        5. Report Commercial listings\n"+
                                 "        6. Rank renters\n"+
                                 "        7. Rank cancelation\n"+
-                                "        8. Delete Profile\n"+
-                                "        9. Logout \n");
+                                "        8. All Comments\n");
                 System.out.print("Select: ");
                 val = sc.nextLine();
                 try {
                     choice = Integer.parseInt(val);
                     switch (choice) { 
                         case 1:
+                            Menu();
                             return;
                         case 2:
                             // Total Number of Bookings
@@ -158,10 +160,7 @@ public class Controller {
                             reportHighesstCancelation();
                             break;
                         case 8:
-                            Menu();
-                            break;
-                        case 9:
-                            Menu();
+                            fetch_print_ratings();
                             break;
                         default:
                             System.out.println("Invalid option");
@@ -2345,4 +2344,27 @@ public class Controller {
         }
         db.HighestCancelation(year);
     }
+
+    private void fetch_print_ratings() throws SQLException, IOException{
+        ResultSet resultSet = db.fetch_ratings();
+        try {
+            System.out.println("+------------+------------------------+----------------+");
+            System.out.println("| listing_id | renter_comment_listing | listing_rating |");
+            System.out.println("+------------+------------------------+----------------+");
+            while (resultSet.next()) {
+                int listingId = resultSet.getInt("listing_id");
+                String comment = resultSet.getString("renter_comment_listing");
+                String rating = resultSet.getString("listing_rating");
+                String commentText = comment != null ? comment : "No comment";
+                String ratingText = rating != null ? rating : "No rating";
+
+                // Print the result
+                System.out.printf("| %10d | %-22s | %-14s |\n", listingId, commentText, ratingText);
+            }
+            System.out.println("+------------+------------------------+----------------+");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

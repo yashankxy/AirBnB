@@ -5,7 +5,9 @@ import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;  
    
 
@@ -1341,4 +1343,14 @@ public class sqlFunctions {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 		}
 	}
+
+	public ResultSet fetch_ratings() throws SQLException{
+		Map<Integer, String> commentsByListing = new HashMap<>();
+			Statement statement = con.createStatement();
+			String query = "SELECT listing_id, renter_comment_listing, listing_rating FROM bookings";
+			ResultSet resultSet = statement.executeQuery(query);
+			
+			return resultSet;
+	}
+
 }
