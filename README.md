@@ -1,4 +1,5 @@
-## Project: MyBnB - Database Design and Management
+# AirBnB
+### Database Design and Management
 
 *Description: Designed and implemented a comprehensive database system inspired by Airbnb to manage property listings, user profiles, bookings, and reviews. Leveraged Java embedded SQL with MySQL for backend development.*
 
